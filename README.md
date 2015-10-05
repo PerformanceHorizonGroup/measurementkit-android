@@ -46,61 +46,51 @@ Import `com.performancehorizon.mobiletracking` into your main Activity and initi
 	import com.performancehorizon.mobiletracking.MobileTrackingService;
 
 	protected void onResume()
-    {
-        super.onResume();
+    	{
+        	super.onResume();
+        
+        	MobileTrackingService.trackingInstance().initialise(this.getApplicationContext(), this.getIntent(), "phg_advertiser_id", "phg_campaign_id");
 
-        String googleplayadvertiserid = "ANDROID_ID";
-
-        MobileTrackingService.trackingInstance().setAdvertisingID(googleplayadvertiserid);
-        MobileTrackingService.trackingInstance().initialise("phg_advertiser_id", "phg_campaign_id");
-    }
+    	}
 
 You will receive your unique PHG Advertiser ID and Campaign ID when you are registered within the PHG platform. It is important to note that an Advertiser account can have multiple Campaigns (apps).
 
-###Tracking Methods
-The PHG SDK offers a generic event method to register dynamic actions, but there are also some pre-defined event types which can have specific report views associated with them in the PHG ExactView platform. These pre-defined events range from simple actions like installs and registrations, through to paid actions such as in-app purchases.
+###Tracking Events
+You can use events to track a variety of actions within your app. Events are represented as conversions inside the affiliate interface.
 
-####Registration
-The registration call captures a user registering within the app. An optional `user_id` can be passed.
+####Event
+The most basic form of event has no value associated with it. (Perhaps an in-app action on which you're not looking to reward affiliates.)
 
-    MobileTrackingEvent event = new MobileTrackingEvent("Registration");
+The category parameter is used to set the product conversions.
 
-    event.addEventInformation("custref", "user_id");
-
+    MobileTrackingEvent event = new MobileTrackingEvent("registration-initiated");
     MobileTrackingService.trackingInstance().trackEvent(event);
 
 ####Event
-Any action within an app, which involves a single event, can be captured using a dynamic `EventTag` identifier with an optional `currency`/`value` combination if there's a cost associated with the action, and this can also reference a unique transaction identifier `conversionref`.
+If an event has a value you'd like to track, sales can be associated with an event as follows.
 
-	MobileTrackingEvent event = new MobileTrackingEvent("Premium");
+The currency parameter is a ISO 4217 currency code. (eg, USD, GBP)
 
-    // Conversion information
-    event.addEventInformation("currency", "iso_3_letter_currency");
-    event.addEventInformation("value", "decimal");
-    event.addEventInformation("conversionref", "order_id");
+    MobileTrackingEvent event = new MobileTrackingEvent(new );
 
     MobileTrackingService.trackingInstance().trackEvent(event);
 
-####Purchase
-A purchase is an event which includes more than one item, for example a paid transaction which includes multiple items within the order. `currency` and `conversionref` is referenced in combination with an array of items, which must include a `category` to describe the type of item, and `value` which is the net cost of a single unit. These item level attributes can be accompanied with an optional `sku` value to reference the unique item code and `quantity` for calculating multiple instances of the same item.
+Sales
 
-	MobileTrackingEvent event = new MobileTrackingEvent("Purchase");
+If an event has a value you'd like to track, sales can be associated with an event as follows.
 
-    // Conversion information
-    event.addEventInformation("conversionref", "order_id");
+The currency parameter is a ISO 4217 currency code. (eg, USD, GBP)
 
-    MobileTrackingSale[] sales = {
-        new MobileTrackingSale("album", new BigDecimal("9.99"), "784785748", new Integer(1)),
-        new MobileTrackingSale("single", new BigDecimal("0.99"), "973723", new Integer(1))
-    };
-
-    event.addSales(Arrays.asList(sales), "GBP");
-    MobileTrackingService.trackingInstance().trackEvent(event);
+	MobileTrackingEvent event = new MobileTrackingEvent(new MobileTrackingSale("premium upgrade", new BigDecimal(34.5)), "GBP");
+	
+	MobileTrackingService.trackingInstance().trackEvent(event);
+	
+	
 
 ###Google Play Install Referrer
-The Google Play Store offers a method for ensuring optimal tracking accuracy via its Google Install Referrer. For all PHG mobile traffic, a unique mobile tracking identifier `clickref` is passed into the `referrer` parameter.
+The Google Play Store offers a method for ensuring optimal tracking accuracy via its Google Install Referrer. Clicks with a destination of the google play store will have a unique mobile tracking identifier is appended to the `referrer` parameter.
 
-On install of the App, you can enable the pass back of this referrer value (`com.android.vending.INSTALL_REFERRER`) through a receiver in your application tags:
+On install of the App, you can enable the pass back of this referrer value (`com.android.vending.INSTALL_REFERRER`) through a broadcast reciever :
 
     <receiver android:name="com.performancehorizon.mobiletracking.ReferrerTracker" android:exported="true">
         <intent-filter>
@@ -108,4 +98,4 @@ On install of the App, you can enable the pass back of this referrer value (`com
         </intent-filter>
     </receiver>
 
-The PHG SDK will pass back the `clickref` collected in the referrer, ensuring a completely accurate attribution of the install and all subsequent event activity.
+The PHG SDK will collect the refererer token from the google play store in this case, and ensure accurate attribution.
