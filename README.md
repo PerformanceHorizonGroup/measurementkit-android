@@ -71,26 +71,15 @@ If an event has a value you'd like to track, sales can be associated with an eve
 
 The currency parameter is a ISO 4217 currency code. (eg, USD, GBP)
 
-    MobileTrackingEvent event = new MobileTrackingEvent(new );
-
-    MobileTrackingService.trackingInstance().trackEvent(event);
-
-Sales
-
-If an event has a value you'd like to track, sales can be associated with an event as follows.
-
-The currency parameter is a ISO 4217 currency code. (eg, USD, GBP)
-
 	MobileTrackingEvent event = new MobileTrackingEvent(new MobileTrackingSale("premium upgrade", new BigDecimal(34.5)), "GBP");
 	
 	MobileTrackingService.trackingInstance().trackEvent(event);
-	
 	
 
 ###Google Play Install Referrer
 The Google Play Store offers a method for ensuring optimal tracking accuracy via its Google Install Referrer. Clicks with a destination of the google play store will have a unique mobile tracking identifier is appended to the `referrer` parameter.
 
-On install of the App, you can enable the pass back of this referrer value (`com.android.vending.INSTALL_REFERRER`) through a broadcast reciever :
+On install of the App, you can enable the pass back of this referrer value through the :
 
     <receiver android:name="com.performancehorizon.mobiletracking.ReferrerTracker" android:exported="true">
         <intent-filter>
@@ -99,3 +88,14 @@ On install of the App, you can enable the pass back of this referrer value (`com
     </receiver>
 
 The PHG SDK will collect the refererer token from the google play store in this case, and ensure accurate attribution.
+
+###Deep links
+
+In order to be opened via a deep link, a app would commonly register a splash activity with an Intent filter as follows.  (This example uses a custom scheme)
+
+	<intent-filter>
+                <data android:scheme="exactview" android:host="open" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+        	<category android:name="android.intent.category.BROWSABLE" />
+        </intent-filter>
