@@ -94,8 +94,8 @@ The PHG SDK will collect the refererer token from the google play store in this 
 In order to be opened via a deep link, a app would commonly register a splash activity with an Intent filter as follows.  (This example uses a custom scheme)
 
 	<intent-filter>
-                <data android:scheme="exactview" android:host="open" />
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-        	<category android:name="android.intent.category.BROWSABLE" />
+           <data android:scheme="exactview" android:host="open" />
+           <action android:name="android.intent.action.VIEW" />
+           <category android:name="android.intent.category.DEFAULT" />
+           <category android:name="android.intent.category.BROWSABLE" />
         </intent-filter>
