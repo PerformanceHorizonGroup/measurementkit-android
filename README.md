@@ -6,9 +6,9 @@
 
 The PHG mobile tracking SDK facilitates install and event tracking from within your app. Simply download the SDK, add into your app, and you can begin to track a wide variety of actions with PHG tracking API.
 
-### Implementation
+## Implementation
 
-#### Installation
+### Installation
 
 If you're using android studio, mobile tracking can be added to your gradle build as follows.
 
@@ -40,7 +40,9 @@ To your app module, add the following.
 	}
 
 
-#### Implementing
+### Implementing
+
+####Initialisation
 Import `com.performancehorizon.mobiletracking` into your main Activity and initialise.
 
 	import com.performancehorizon.mobiletracking.MobileTrackingService;
@@ -55,28 +57,7 @@ Import `com.performancehorizon.mobiletracking` into your main Activity and initi
 
 You will receive your unique PHG Advertiser ID and Campaign ID when you are registered within the PHG platform. It is important to note that an Advertiser account can have multiple Campaigns (apps).
 
-###Tracking Events
-You can use events to track a variety of actions within your app. Events are represented as conversions inside the affiliate interface.
-
-####Event
-The most basic form of event has no value associated with it. (Perhaps an in-app action on which you're not looking to reward affiliates.)
-
-The category parameter is used to set the product conversions.
-
-    MobileTrackingEvent event = new MobileTrackingEvent("registration-initiated");
-    MobileTrackingService.trackingInstance().trackEvent(event);
-
-####Event
-If an event has a value you'd like to track, sales can be associated with an event as follows.
-
-The currency parameter is a ISO 4217 currency code. (eg, USD, GBP)
-
-	MobileTrackingEvent event = new MobileTrackingEvent(new MobileTrackingSale("premium upgrade", new BigDecimal(34.5)), "GBP");
-	
-	MobileTrackingService.trackingInstance().trackEvent(event);
-	
-
-###Google Play Install Referrer
+#####Google Play Install Referrer
 The Google Play Store offers a method for ensuring optimal tracking accuracy via its Google Install Referrer. Clicks with a destination of the google play store will have a unique mobile tracking identifier is appended to the `referrer` parameter.
 
 On install of the App, you can enable the pass back of this referrer value through the :
@@ -89,7 +70,29 @@ On install of the App, you can enable the pass back of this referrer value throu
 
 The PHG SDK will collect the refererer token from the google play store in this case, and ensure accurate attribution.
 
-###Deep links
+####Tracking Events
+You can use events to track a variety of actions within your app. Events are represented as conversions inside the affiliate interface.
+
+#####Event
+The most basic form of event has no value associated with it. (Perhaps an in-app action on which you're not looking to reward affiliates.)
+
+The category parameter is used to set the product conversions.
+
+    MobileTrackingEvent event = new MobileTrackingEvent("registration-initiated");
+    MobileTrackingService.trackingInstance().trackEvent(event);
+
+#####Sale
+If an event has a value you'd like to track, sales can be associated with an event as follows.
+
+The currency parameter is a ISO 4217 currency code. (eg, USD, GBP)
+
+	MobileTrackingEvent event = new MobileTrackingEvent(new MobileTrackingSale("premium upgrade", new BigDecimal(34.5)), "GBP");
+	
+	MobileTrackingService.trackingInstance().trackEvent(event);
+	
+### Deep link configuration
+	
+####Deep links
 
 In order to be opened via a deep link, a app would commonly register a splash activity with an Intent filter as follows.  (This example uses a custom scheme)
 
