@@ -4,15 +4,41 @@
 
 ## Overview
 
-The PHG SDK facilitates initital user registration and event logging from within your app. Simply download the SDK, add into your app, and you can begin to track a wide variety of actions to the PHG tracking API.
+The PHG mobile tracking SDK facilitates install and event tracking from within your app. Simply download the SDK, add into your app, and you can begin to track a wide variety of actions with PHG tracking API.
 
 ### Implementation
 
-#### Grabbing the SDK
-The Android SDK is available as a single JAR file. We will soon have a Maven repo for easier integration into your project.
+#### Installation
 
-#### Adding
-Copy the PHG MobileTrackingService JAR file to the libs directory of your app.
+If you're using android studio, mobile tracking can be added to your gradle build as follows.
+
+To your project build.gradle, add a maven repository 
+
+	buildscript {
+    		repositories {
+        		jcenter()
+
+        		//maven repo for mobile tracking (will be added to jcenter in future)
+        		maven {
+            			url 'https://dl.bintray.com/owainbrown/maven/'
+        		}
+    		}
+    	
+    		dependencies {
+        		classpath 'com.android.tools.build:gradle:1.1.0'
+    		}
+	}
+
+To your app module, add the following.
+
+	dependencies {
+	    /*
+	    *
+	    * All other dependencies....
+	    */
+	    compile 'com.performancehorizon.android:mobiletracking:0.1.0'
+	}
+
 
 #### Implementing
 Import `com.performancehorizon.mobiletracking` into your main Activity and initialise.
