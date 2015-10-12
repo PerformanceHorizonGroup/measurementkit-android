@@ -1,1 +1,1 @@
-include ':app', ':mobiletracking'
+include ':app', ':measurementkit'
