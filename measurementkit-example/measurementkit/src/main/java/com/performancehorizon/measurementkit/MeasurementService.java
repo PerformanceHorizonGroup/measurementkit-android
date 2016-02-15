@@ -16,7 +16,6 @@ import bolts.Task;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 
 import java.lang.ref.WeakReference;
-import java.net.URL;
 import java.util.concurrent.Callable;
 
 
@@ -184,7 +183,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
     /**
      * returns a shared singleton instance of the measurement service with the given configuratedion @link{MeasurementServiceConfig}.
      * @warning The configuration will be ignored if a shared instance has already been generated.
-     * @return
+     * @return the shared instance of measurement service.
      */
     public static MeasurementService sharedInstance(MeasurementServiceConfiguration config)
     {
@@ -241,7 +240,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                 networkActive);
     }
 
-    public void fakeInstallBroadcast(Context currentcontext, String referrer)
+    void fakeInstallBroadcast(Context currentcontext, String referrer)
     {
         Intent googleplayinstall = new Intent("com.android.vending.INSTALL_REFERRER");
         googleplayinstall.putExtra("referrer", referrer);
@@ -249,8 +248,12 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         LocalBroadcastManager.getInstance(currentcontext).sendBroadcast(googleplayinstall);
     }
 
-    public void clearTracking(Context currentcontext) {
-        MeasurementServiceStorage.clearPreferences(currentcontext);
+    /**
+     * Clears all the stored measurementkit data.  Service will restart afresh on next initialise.
+     * @param context the current context.
+     */
+    public void clearTracking(Context context) {
+        MeasurementServiceStorage.clearPreferences(context);
     }
 
     protected static void setTrackingInstance(MeasurementService service)
@@ -290,22 +293,17 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         });
         }
 
-
-    public void initialise(@NonNull String advertiserID, @NonNull String campaignID) {
-        this.initialise(null, null, advertiserID, campaignID);
-    }
-
     /**
      *
      * Initialises the measurement service.  Requires activity {@link Context}, the {@link Intent} that launched the activity,
      * the advertisers advertiserID, and the campaignID you wish conversions to be attributed to.
      *
-     * @param context
-     * @param intent
-     * @param advertiserID
-     * @param campaignID
+     * @param context the current context
+     * @param intent intent that launched the current activity
+     * @param advertiserID Performance Horizon advertiser identifer.  In the PH UI, see Settings -> Advertiser
+     * @param campaignID Performance Horizon campaign identifer.  In the PH UI, see Settings -> Campaign
      */
-    public void initialise(Context context, Intent intent, @NonNull String advertiserID,
+    public void initialise(@NonNull Context context, Intent intent, @NonNull String advertiserID,
                            @NonNull String campaignID) {
         this.initialise(context, intent, advertiserID, campaignID,
                 new MeasurementStorageFactory(),
@@ -472,26 +470,42 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
     /**
      * Adds a campaign reference to an intent for affiliate tracking.
-     * @param intent
+     * @param intent the intent to which a campaign reference will be added (as a string extra)
+     * @param camref the camref attribution identifier, which represents the combination of campaign and publisher
      * @return
      */
-    public static void addCamrefToIntent(Intent intent, String camref) {
+    public static Intent addCamrefToIntent(Intent intent, String camref) {
         intent.putExtra(TrackingConstants.TRACKING_INTENT_CAMREF, camref);
+        return intent;
     }
 
     public static Uri measurementServiceURI(String camref, Uri destinationuri, Uri deeplink) {
         return MeasurementService.measurementServiceURI(camref,null, destinationuri, deeplink, false);
     }
 
+    /**
+     * Composes a uri to Performance horizon's measurement kit API.
+     *
+     * When used in the context of an application, the destination field represents the alternative destination for an intent,
+     * as it is presumed that the original intent opening has failed.  E.g.  Uri for app has failed, now opening the
+     * tracked web equivalent.
+     *
+     * @param camref the campaign reference that represents the publisher-campaign combination.
+     * @param advertisingid the android advertising id. {@link AdvertisingIdClient}
+     * @param destinationuri the destination target for the uri.
+     * @param deeplink the deeplink representing the original intent.
+     * @return the uri for the measurement kit uri for opening
+     *
+     */
     public static Uri measurementServiceURI(String camref,@Nullable String advertisingid, Uri destinationuri, Uri deeplink) {
         return MeasurementService.measurementServiceURI(camref, advertisingid, destinationuri, deeplink, false);
     }
 
-    public static Uri measurementServiceURI(String camref,@Nullable String advertisingid, Uri destinationuri, Uri deeplink, boolean isDebug) {
+    static Uri measurementServiceURI(String camref,@Nullable String advertisingid, Uri destinationuri, Uri deeplink, boolean isDebug) {
         return MeasurementService.measurementServiceURI(camref, advertisingid, destinationuri, deeplink, isDebug, new UriBuilderFactory());
     }
 
-    public static Uri measurementServiceURI(@NonNull String camref,@Nullable String advertisingid,
+    static Uri measurementServiceURI(@NonNull String camref,@Nullable String advertisingid,
                                             @NonNull Uri destinationuri, @Nullable Uri deeplink,
                                             boolean debuguri, UriBuilderFactory builderfactory) {
 
@@ -530,7 +544,19 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         return activityloaded;
     }
 
-    public static void openIntentWithAlternativeURI(Context context,Intent intent,String camref, Uri uri) {
+    /**
+     *
+     * Opens the given intent, with associated PH measurement data.  If the intent opens fails, the given uri is used to construct an alternative Intent,
+     * which is then opened (presuming a browser is available).
+     *
+     * @param context the current contect, on which new activities will be started.
+     * @param intent the intent for the application you wish to open.
+     * @param camref camref representing the publisher's membership of the campaign.
+     * @param uri alternative uri.  An intent will be constructed from this uri, with action: ACTION_VIEW.
+     *
+     * @warning - part of this method will be called on a background executor, so the activity launch will be asychronous.
+     */
+    public static void openIntentWithAlternativeURI(@NonNull Context context,Intent intent,String camref, Uri uri) {
         openIntentWithAlternativeURI(context, intent, camref, uri, new IntentFactory());
     }
 
@@ -586,6 +612,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
                 return null;
             }
+
         });
     }
 
@@ -685,26 +712,40 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         }
     }
 
-
     @Override
     public void registerRequestQueueDidError(RegisterRequestQueue queue, RegisterRequest request, Exception error) {
         ServiceLog.debug("Register queue failure. " + error.toString());
     }
 
     /**
-     * Return the intent that
-     * @return
+     * Return an intent that represents the attributed deep link. E.g. a uri that represents the content shown in the
+     * advertisement that prompted the launch/install.
+     *
+     * Please note that at present the original action is not recorded.  A default action of ACTION_VIEW is added.
+     * @return the intent that represents the deep link.
      */
     @Nullable
     public Intent getDeepLinkIntent() {
         return deepLinkIntent;
     }
 
+    /**
+     * Get the referrer uri.  This is the link that displayed the original advertisement.
+     *
+     * Please note that this uri is only captured in a web-app scenario at present.
+     * @return the referrer uri
+     */
     @Nullable
     public Uri getReferrer() {
         return referrer;
     }
 
+    /**
+     * Get the Performance Horizon mobile tracking id.  This is generated by the measurement kit API, and represents
+     * the registration of this device against a provided ID.  This could be a cookie ID from the web, an AAID from the an app,
+     * or a registration token passed through the referrer field in google play.
+     * @return the tracking identifier for the last registration on this device
+     */
     @Nullable
     public String getTrackingID() {
         //guard for pre-init.
@@ -717,11 +758,21 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         }
     }
 
+    /**
+     * Get the configuration used by the measurement service.
+     * @return the current configuration in use.
+     */
     @NonNull
     public MeasurementServiceConfiguration getConfiguration() {
         return this.config;
     }
 
+    /**
+     * Get the current status of the measurement service.
+     * @return the current status
+     *
+     * @see MeasurementService.MeasurementServiceStatus
+     */
     @NonNull
     public MeasurementServiceStatus getStatus() {
         return this.status;
