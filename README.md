@@ -1,10 +1,10 @@
 ![PHG Icon](http://performancehorizon.com/img/logo-on-white.svg)
 
-# Mobile Tracking Android SDK
+# Measurement Kit Android SDK
 
 ## Overview
 
-The PHG mobile tracking SDK facilitates install and event tracking from within your app. Simply download the SDK, add into your app, and you can begin to track a wide variety of actions with PHG tracking API.
+Measurement Kit facilitates install and event tracking from within your app, as part of Performance Horizon's performance marketing service. Simply add the SDK to your app, and you can begin to track a wide variety of actions with Perfomance Horizon's tracking API.
 
 ## Implementation
 
@@ -36,26 +36,26 @@ To your app module, add the following.
 	    *
 	    * All other dependencies....
 	    */
-	    compile 'com.performancehorizon.android:mobiletracking:0.1.0'
+	    compile 'com.performancehorizon.android:measurementkit:0.2.3'
 	}
 
 
 ### Implementing
 
 ####Initialisation
-Import `com.performancehorizon.mobiletracking` into your main Activity and initialise.
+Import `com.performancehorizon.measurementkit.*` into your main Activity and initialise.
 
-	import com.performancehorizon.mobiletracking.MobileTrackingService;
+	import com.performancehorizon.measurementkit.MeasurementService;
 
 	protected void onResume()
     	{
         	super.onResume();
-        
-        	MobileTrackingService.trackingInstance().initialise(this.getApplicationContext(), this.getIntent(), "phg_advertiser_id", "phg_campaign_id");
+        	
+        	MeasurementService.sharedInstance().initialise(this.getApplicationContext(), this.getIntent(), "phg_advertiser_id", "phg_campaign_id");
 
     	}
 
-You will receive your unique PHG Advertiser ID and Campaign ID when you are registered within the PHG platform. It is important to note that an Advertiser account can have multiple Campaigns (apps).
+You will receive your unique Performance Horizon Advertiser ID and Campaign ID when you are registered within the PHG platform. It is important to note that an Advertiser account can have multiple Campaigns (apps).
 
 #####Google Play Install Referrer
 The Google Play Store offers a method for ensuring optimal tracking accuracy via its Google Install Referrer. Clicks with a destination of the google play store will have a unique mobile tracking identifier is appended to the `referrer` parameter.
@@ -68,7 +68,7 @@ On install of the App, you can enable the pass back of this referrer value throu
         </intent-filter>
     </receiver>
 
-The PHG SDK will collect the refererer token from the google play store in this case, and ensure accurate attribution.
+The  SDK will collect the refererer token from the google play store in this case, and ensure accurate attribution.
 
 ####Tracking Events
 You can use events to track a variety of actions within your app. Events are represented as conversions inside the affiliate interface.
@@ -86,9 +86,9 @@ If an event has a value you'd like to track, sales can be associated with an eve
 
 The currency parameter is a ISO 4217 currency code. (eg, USD, GBP)
 
-	MobileTrackingEvent event = new MobileTrackingEvent(new MobileTrackingSale("premium upgrade", new BigDecimal(34.5)), "GBP");
+	Event event = new Event(new Sale("premium upgrade", new BigDecimal(34.5)), "GBP");
 	
-	MobileTrackingService.trackingInstance().trackEvent(event);
+	MeasurementService.trackingInstance().trackEvent(event);
 	
 ### Deep link configuration
 	
