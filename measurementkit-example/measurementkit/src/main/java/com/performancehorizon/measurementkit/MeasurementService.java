@@ -1,25 +1,26 @@
 package com.performancehorizon.measurementkit;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
-import com.squareup.okhttp.OkHttpClient;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import bolts.Continuation;
+import bolts.Task;
 
-import java.io.UnsupportedEncodingException;
+
+import com.google.android.gms.ads.identifier.AdvertisingIdClient;
+
 import java.lang.ref.WeakReference;
-import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.net.URL;
+import java.util.concurrent.Callable;
+
+
+import okhttp3.OkHttpClient;
 
 /**
  * MeasurementService - interface to Performance Horizon's mobile tracking API.
@@ -27,62 +28,149 @@ import java.util.regex.Pattern;
  * @see {@link Event}
  * @see {@link Sale}
  */
-public class MeasurementService implements TrackingRequestQueueDelegate {
+public class MeasurementService implements TrackingRequestQueueDelegate, RegisterRequestQueueDelegate {
+
+    static class MeasurementStorageFactory
+    {
+        public MeasurementServiceStorage getMeasurementStorage(Context context) {
+            return new MeasurementServiceStorage(context);
+        }
+    }
+
+    static class ReachabilityFactory
+    {
+        public Reachability getReachability(ConnectivityManager manager, ReachabilityCallback callback) {
+            return new Reachability(manager, callback);
+        }
+    }
+
+    static class RegisterRequestFactory
+    {
+        public RegisterRequest getRegisterRequest(Context context, boolean doNotTrackAAID) {
+            return new RegisterRequest(context, doNotTrackAAID);
+        }
+    }
+
+    static class EventRequestFactory
+    {
+        public EventRequest getEventRequest(Event event, String trackingid) {
+            return new EventRequest(event, trackingid);
+        }
+
+        public EventRequest getEventRequest(Event event) {
+            return new EventRequest(event);
+        }
+    }
+
+    static class IntentProcessorFactory
+    {
+        public WebClickIntentProccessor getWebIntentProcessor(Intent intent) {
+            return new WebClickIntentProccessor(intent);
+        }
+
+        public AppClickIntentProcessor getAppIntentProcessor(Intent intent, String camrefKey) {
+            return new AppClickIntentProcessor(intent, camrefKey);
+        }
+
+        public UniversalIntentProcessor getUniversalIntentProcessor(Intent intent, TrackingURLHelper helper)
+        {
+            return new UniversalIntentProcessor(intent, helper);
+        }
+    }
+
+    static class UriBuilderFactory
+    {
+        public MeasurementServiceURIBuilder getTrackingUriBuilder(TrackingURLHelper trackinghelper) {
+            return new MeasurementServiceURIBuilder(trackinghelper);
+        }
+    }
+
+    static class IntentFactory
+    {
+        public Intent getIntent(Intent intent) {
+            return (Intent)intent.clone();
+        }
+
+        public Intent getIntent(String action, Uri data) {
+            return new Intent(action, data);
+        }
+    }
+
+    static class RegistrationProcessorFactory
+    {
+        public RegistrationProcessor getRequestProcessor(String result) {
+            return new RegistrationProcessor(result);
+        }
+    }
+
+
+    /**
+     * Status of the measurementservice;
+     */
+    public enum MeasurementServiceStatus {
+        /**
+         * Service is registering to confirm a mobile tracking id.
+         */
+        QUERYING,
+
+        /**
+         * Service has received a mobile tracking id, and is registering events.
+         */
+        ACTIVE,
+
+        /**
+         * Registration has confirmed that this device has no affliate click, so service is inactive.
+         */
+        INACTIVE,
+
+        /**
+         * Service has been constructed but not started.
+         */
+        AWAITING_INITIALISE,
+
+        /**
+         * Service has been halted externally
+         */
+        HALTED;
+    }
 
     //singleton
     private static MeasurementService _sharedTrackingService;
 
+    //service configuration
+    @NonNull private  MeasurementServiceConfiguration config;
+    @NonNull private  MeasurementServiceStatus status = MeasurementServiceStatus.AWAITING_INITIALISE;
+
     //callback
-    private MeasurementServiceCallback callback;
+    @Nullable private MeasurementServiceCallback callback;
 
     //setup variables.
-    private String campaignID;
-    private String clickRef;
-
-    private String phgAdvertiserID;
-    @Nullable String idfa;
-
-    private Map<String, Object> activeFingerprint;
+    @NonNull private String campaignID;
+    @NonNull private String advertiserID;
 
     //dependencies.
-    private TrackingRequestQueue eventQueue;
-    private TrackingRequestQueue clickRefQueue;
+    private EventRequestQueue eventQueue;
+    private RegisterRequestQueue registerQueue;
     private Reachability reachability;
-    private WeakReference<Context> context;
-    private TrackingRequestFactory factory;
+
     private TrackingURLHelper urlHelper;
-    private FingerprinterFactory fingerprinterFactory;
 
-    //fingerprint dependencies.
-    private ActiveFingerprinter activeFingerprinter;
-    private Fingerprinter fingerprinter;
+    private FingerprinterFactory fingerprinterfactory;
 
-    private boolean trackingActive = true;
-    private boolean setupComplete = false;
-    private String referrer;
+    @Nullable private WeakReference<Context> context;
+    @Nullable private MeasurementServiceStorage storage;
 
-
-    private boolean generateActiveFingerprint = false;
-
-    private Intent filteredintent;
+    @Nullable private Uri referrer;
+    @Nullable private Intent deepLinkIntent;
 
     protected class TrackingConstants
     {
-        protected final static String TRACKING_PREF = "com.performancehorizon.phgmt";
-
-        protected final static String TRACKING_PREF_ID = "com.performancehorizon.phgmt.id";
-        protected final static String TRACKING_PREF_ACTIVE = "com.performancehorizon.com.phgmt.isactive";
-        protected final static String TRACKING_PREF_SETUP_COMPLETE = "com.performancehorizon.com.phgmt.setupcomplete";
-        protected final static String TRACKING_PREF_REFERRER = "com.performancehorizon.com.phgmt.referrrer";
-
         protected final static String TRACKING_LOG = "phgmt";
-
-        protected final static String TRACKING_ID_KEY = "mobiletracking_id";
-        protected final static String META_KEY = "meta";
         protected final static String DEEPLINK_KEY = "deep_link";
         protected final static String DEEPLINK_ACTION_KEY = "deeplink_action";
-    }
 
+        protected final static String TRACKING_INTENT_CAMREF = "com.performancehorizon.camref";
+    }
 
     /**
      * returns a shared instance of the measurement service.
@@ -90,11 +178,67 @@ public class MeasurementService implements TrackingRequestQueueDelegate {
      */
     public static MeasurementService sharedInstance()
     {
+        return MeasurementService.sharedInstance(new MeasurementServiceConfiguration());
+    }
+
+    /**
+     * returns a shared singleton instance of the measurement service with the given configuratedion @link{MeasurementServiceConfig}.
+     * @warning The configuration will be ignored if a shared instance has already been generated.
+     * @return
+     */
+    public static MeasurementService sharedInstance(MeasurementServiceConfiguration config)
+    {
         if (_sharedTrackingService == null) {
-            _sharedTrackingService = new MeasurementService();
+            _sharedTrackingService = new MeasurementService(config);
         }
 
         return _sharedTrackingService;
+    }
+
+    public MeasurementService() {
+        this(new MeasurementServiceConfiguration());
+    }
+
+    public MeasurementService(MeasurementServiceConfiguration config) {
+
+        this(config,
+                new RegisterRequestQueue(new TrackingRequestQueue(new OkHttpClient()), new TrackingRequestFactory(), new TrackingURLHelper(config.getDebugModeActive())),
+                new EventRequestQueue(new TrackingRequestQueue(new OkHttpClient()), new TrackingRequestFactory(), new TrackingURLHelper(config.getDebugModeActive())),
+                new FingerprinterFactory()
+        );
+    }
+
+    public MeasurementService(MeasurementServiceConfiguration config,
+                              RegisterRequestQueue registerQueue,
+                              EventRequestQueue eventQueue,
+                              FingerprinterFactory fingerprintFactory
+
+    ) {
+
+        this.config = config;
+
+        this.registerQueue = registerQueue;
+        this.registerQueue.setDelegate(this);
+        this.urlHelper = new TrackingURLHelper(config.getDebugModeActive());
+
+        this.eventQueue = eventQueue;
+        this.eventQueue.setDelegate(this);
+
+        this.fingerprinterfactory = fingerprintFactory;
+
+        this.status = MeasurementServiceStatus.AWAITING_INITIALISE;
+    }
+
+
+    private boolean registerQueueIsPaused(boolean networkActive) {
+        return !(this.status == MeasurementServiceStatus.QUERYING &&
+                networkActive);
+    }
+
+    private boolean eventQueueIsPaused(boolean networkActive) {
+
+        return !(this.status == MeasurementServiceStatus.ACTIVE &&
+                networkActive);
     }
 
     public void fakeInstallBroadcast(Context currentcontext, String referrer)
@@ -105,11 +249,8 @@ public class MeasurementService implements TrackingRequestQueueDelegate {
         LocalBroadcastManager.getInstance(currentcontext).sendBroadcast(googleplayinstall);
     }
 
-    public void clearTracking(Context currentcontext)
-    {
-        SharedPreferences preferences = currentcontext.getSharedPreferences(TrackingConstants.TRACKING_PREF, Context.MODE_PRIVATE);
-
-        preferences.edit().clear().commit();
+    public void clearTracking(Context currentcontext) {
+        MeasurementServiceStorage.clearPreferences(currentcontext);
     }
 
     protected static void setTrackingInstance(MeasurementService service)
@@ -117,126 +258,42 @@ public class MeasurementService implements TrackingRequestQueueDelegate {
         _sharedTrackingService = service;
     }
 
-    public MeasurementService() {
-        this(new TrackingRequestQueue(new OkHttpClient()),
-                new TrackingRequestQueue(new OkHttpClient()), new TrackingRequestFactory(),
-                new FingerprinterFactory()
-        );
-    }
+    private void register(RegisterRequestFactory registerRequestFactory) {
 
-    public MeasurementService(TrackingRequestQueue setupQueue,
-                              TrackingRequestQueue eventQueue,
-                              TrackingRequestFactory factory,
-                              FingerprinterFactory fingerprintFactory) {
-        this.clickRefQueue = setupQueue;
-        this.clickRefQueue.setDelegate(this);
+        final RegisterRequestFactory therequestfactory = registerRequestFactory;
 
-        this.eventQueue = eventQueue;
-        this.eventQueue.setDelegate(this);
+        Task.callInBackground(new Callable<RegisterRequest>() {
+            @Override
+            public RegisterRequest call() throws Exception {
+                return therequestfactory.getRegisterRequest(MeasurementService.this.context.get(), MeasurementService.this.config.getDoNoTrackAAID());
+                }
+            }).continueWith(new Continuation<RegisterRequest, Void>() {
+            @Override
+            public Void then(Task<RegisterRequest> task) throws Exception {
+                RegisterRequest registerrequest = task.getResult();
 
-        this.factory = factory;
-        this.fingerprinterFactory = fingerprintFactory;
-        this.urlHelper = new TrackingURLHelper();
-    }
+                registerrequest.setCampaignID(MeasurementService.this.campaignID);
 
-    public MeasurementService(TrackingRequestQueue setupQueue,
-                              TrackingRequestQueue eventQueue,
-                              TrackingRequestFactory factory) {
+                registerrequest.setAdvertiserID(MeasurementService.this.advertiserID);
+                registerrequest.setFingerprint(MeasurementService.this.fingerprinterfactory.getFingerprinter(MeasurementService.this.context.get()).generateFingerprint());
 
-        this(setupQueue, eventQueue, factory, new FingerprinterFactory());
-    }
+                if (MeasurementService.this.storage.getCamRef() != null) {
+                    registerrequest.setCamref(MeasurementService.this.storage.getCamRef());
+                } else if (MeasurementService.this.storage.getReferrer() != null) {
+                    registerrequest.setReferrer(MeasurementService.this.storage.getReferrer());
+                }
 
-    protected Boolean isValid()
-    {
-        return (this.getClickRef() != null);
-    }
+                MeasurementService.this.registerQueue.addRegisterRequest(registerrequest);
 
-    public void initialise(String advertiserID, String campaignID)
-    {
+                return null;
+            }
+        });
+        }
+
+
+    public void initialise(@NonNull String advertiserID, @NonNull String campaignID) {
         this.initialise(null, null, advertiserID, campaignID);
     }
-
-    private Map<String, Object> getTrackingDetails()
-    {
-        HashMap<String, Object> tracking = new HashMap<String, Object>();
-
-        tracking.put("advertiser_id", this.getAdvertiserID());
-        tracking.put("campaign_id", this.getCampaignID());
-
-        tracking.put("fingerprint", this.fingerprinter.generateFingerprint());
-
-        if (this.getIdfa() != null) {
-            tracking.put("idfa", this.getIdfa());
-        }
-
-        if (this.referrer != null) {
-            tracking.put("referrer", this.referrer);
-        }
-
-        if (this.willGenerateActiveFingerprint()) {
-            tracking.put("active_fingerprint", this.activeFingerprint);
-        }
-
-        return tracking;
-    }
-
-    protected boolean readyToRegister()
-    {
-        return (this.isTrackingActive() &&                      //active
-                (this.clickRef == null) &&                      //no clickref.
-                (!this.clickRefQueue.isRequestActive()) &&      //no active request.
-                (this.getAdvertiserID() != null) &&
-                (this.campaignID != null) && //must have campaign and advertiser ids.
-                (!this.willGenerateActiveFingerprint() || this.activeFingerprint != null) //either don't wait for a fingerprint, or have one.
-        );
-
-    }
-
-    protected void register()
-    {
-        Map<String, Object> tracking = this.getTrackingDetails();
-
-        JSONObject jsonobject  = new JSONObject(tracking);
-
-        TrackingRequest request = factory.getRequest(this.urlHelper.urlStringForTracking() + "/register", jsonobject);
-
-        this.clickRefQueue.enqueueRequest(request);
-    }
-
-    private Map<String, Object> getEventTrackingDetails(Event event)
-    {
-        if (this.getClickRef() != null && this.getCampaignID() != null && this.getAdvertiserID() != null) {
-            Map<String, Object> eventdetails = new HashMap<>();
-
-            eventdetails.put("advertiser_id", this.getAdvertiserID());
-            eventdetails.put("campaign_id", this.getCampaignID());
-            eventdetails.put("mobiletracking_id", this.getClickRef());
-
-            if (event.getEventTag() != null) {
-                eventdetails.put("event_category", event.getEventTag());
-            }
-
-            eventdetails.put(TrackingConstants.META_KEY, event.getEventData());
-
-            //optional sales.
-            Map<String, Object> sales = event.getSalesData();
-
-            eventdetails.putAll(sales);
-
-            return eventdetails;
-        }
-        else {
-            return null;
-        }
-    }
-
-    public void loadPreferences(SharedPreferences preferences)
-    {
-        this.setClickRef(preferences.getString(TrackingConstants.TRACKING_PREF_ID, null));
-        this.trackingActive = preferences.getBoolean(TrackingConstants.TRACKING_PREF_ACTIVE, true);
-        this.setupComplete = preferences.getBoolean(TrackingConstants.TRACKING_PREF_SETUP_COMPLETE, false);
-    }
-
 
     /**
      *
@@ -248,226 +305,442 @@ public class MeasurementService implements TrackingRequestQueueDelegate {
      * @param advertiserID
      * @param campaignID
      */
-    public void initialise(Context context, Intent intent, String advertiserID, String campaignID)
+    public void initialise(Context context, Intent intent, @NonNull String advertiserID,
+                           @NonNull String campaignID) {
+        this.initialise(context, intent, advertiserID, campaignID,
+                new MeasurementStorageFactory(),
+                new ReachabilityFactory(),
+                new IntentProcessorFactory(),
+                new RegisterRequestFactory());
+    }
+
+
+    protected void initialise(Context context, Intent intent, @NonNull String advertiserID, @NonNull String campaignID,
+                              @NonNull MeasurementStorageFactory storageFactory,
+                              @NonNull ReachabilityFactory reachabilityFactory,
+                              @NonNull IntentProcessorFactory processorFactory,
+                              @NonNull RegisterRequestFactory registerRequestFactory)
     {
         this.context = new WeakReference<>(context);
         this.setAdvertiserID(advertiserID);
         this.setCampaignID(campaignID);
-        this.fingerprinter = new Fingerprinter(context);
 
-        if (this.context != null && this.context.get() != null) {
+        this.storage = storageFactory.getMeasurementStorage(context);
 
-            this.loadPreferences(context.getApplicationContext().getSharedPreferences(TrackingConstants.TRACKING_PREF, Context.MODE_PRIVATE));
+        if (this.context.get() != null) {
 
-            if (!this.setupComplete && ReferrerTracker.getReferrer() != null) {
-                this.referrer = ReferrerTracker.getReferrer();
-            }
+            //load from shared preferences.
+            this.storage.loadFromPreferences();
 
             ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-            this.reachability = new Reachability(connectivityManager, new ReachabilityCallback() {
+            this.reachability = reachabilityFactory.getReachability(connectivityManager, new ReachabilityCallback() {
                 @Override
                 public void onNetworkActive() {
-                    MeasurementService.this.eventQueue.setQueueIsPaused(false);
-                    MeasurementService.this.clickRefQueue.setQueueIsPaused(false);
+                    MeasurementService.this.eventQueue.setQueueIsPaused(MeasurementService.this.eventQueueIsPaused(true));
+                    MeasurementService.this.registerQueue.setQueueIsPaused(MeasurementService.this.registerQueueIsPaused(true));
                 }
             });
-
-            if (this.willGenerateActiveFingerprint()) {
-                this.activeFingerprinter = fingerprinterFactory.getActiveFingerprinter(context, new ActiveFingerprinter.MobileTrackingActiveFingerprinterCallback() {
-                    @Override
-                    public void activeFingerprintComplete(ActiveFingerprinter fingerprinter, Map<String, Object> fingerprint) {
-
-                        MeasurementService.this.activeFingerprint = fingerprint;
-
-                        if (MeasurementService.this.readyToRegister()) {
-                            MeasurementService.this.register();
-                        }
-                    }
-                });
-
-                this.activeFingerprinter.generateFingerprint();
-            }
         }
 
-        this.processDeepLink(intent);
+        //now source data from the referrer
+        if (ReferrerTracker.getReferrer() != null) {
+            this.storage.putReferrerQuery(ReferrerTracker.getReferrer());
+        }
 
-        if (this.isTrackingActive() && !this.setupComplete && this.readyToRegister()) {
-            this.register();
+        //and the opening intent
+        this.deepLinkIntent = this.processDeepLink(intent, processorFactory);
+
+        //set the initial status (also configures the queue states)
+        this.setStatus(this.storage.status());
+
+        //if a new query is needed, send off request.
+        if (this.status == MeasurementServiceStatus.QUERYING) {
+            this.register(registerRequestFactory);
         }
     }
 
+    void trackEvent(Event event, EventRequestFactory factory)
+    {
+        //if you're inactive, ignore.  If you're active, send off.
+        //all other states, queue without a confirmed mobile tracking id.
+        switch(this.status) {
+            case ACTIVE:
+
+                //this is just a catch in case somehow
+                this.eventQueue.addEventRequest((this.storage.getTrackingID() == null) ?
+                        factory.getEventRequest(event) :
+                        factory.getEventRequest(event, this.storage.getTrackingID()));
+                break;
+            case INACTIVE:
+                //do nothing!
+                break;
+            default:
+                this.eventQueue.addEventRequest(
+                        factory.getEventRequest(event));
+        }
+
+        //prompt to check connectivity status and restart queues.
+        if (this.reachability != null && this.reachability.isNetworkActive()) {
+            this.eventQueue.setQueueIsPaused(this.eventQueueIsPaused(true));
+            this.registerQueue.setQueueIsPaused(this.registerQueueIsPaused(true));
+        }
+    }
 
     /**
-     * Track an event.  Events are registered as a conversion in the Performance horizon's affliate tracking interface.
+     * Track an event.  Events are registered as a conversion in the Performance horizon's affiliate tracking interface.
      * Events will be uploaded asynchronously in the background.
      * @param event the event to track
      */
     public void trackEvent(Event event)
     {
-        Map<String, Object> eventdetail = this.getEventTrackingDetails(event);
-
-        if (eventdetail != null) {
-
-            JSONObject jsonobject  = new JSONObject(eventdetail);
-
-            TrackingRequest eventrequest = factory.getRequest(this.urlHelper.urlStringForTracking() + "/event", jsonobject);
-            this.eventQueue.enqueueRequest(eventrequest);
-        }
-
-        //prompt to check connectivity status and restart queues.
-        if (this.reachability != null && this.reachability.isNetworkActive()) {
-            this.eventQueue.setQueueIsPaused(false);
-            this.clickRefQueue.setQueueIsPaused(false);
-        }
+        this.trackEvent(event, new EventRequestFactory());
     }
 
-    private Intent processDeepLink(Intent intent) {
+    /**
+     * Set the status of the measurement service.  Also sets the paused state of the event and register queues.
+     * @param status the new status for the measurement service.
+     */
+    private void setStatus(MeasurementServiceStatus status) {
+        this.status = status;
 
-        if (intent.getAction() == Intent.ACTION_VIEW) {
+        boolean networkreachable = this.reachability != null ? this.getReachability().isNetworkActive() : false;
 
-            Pattern trackingregex= Pattern.compile("/mobiletrackingid:(\\w*)");
-            String path = intent.getData().getPath();
-            Matcher regexfinder = trackingregex.matcher(path);
+        this.eventQueue.setQueueIsPaused(this.eventQueueIsPaused(networkreachable));
+        this.registerQueue.setQueueIsPaused(this.registerQueueIsPaused(networkreachable));
+    }
 
-            if (regexfinder.find()) {
-                String clickref = regexfinder.group(1);
+    /**
+     * Processes the given intent, detecting a deep link if present and using it to set up the state of the measurement service
+     * (Specifically gets a tracking id or a query for a camref)
+     * @param intent
+     * @param factory
+     * @return
+     */
+    private Intent processDeepLink(Intent intent, IntentProcessorFactory factory) {
 
-                //setup preferences for future use.
-                SharedPreferences prefs = this.context.get().getSharedPreferences(TrackingConstants.TRACKING_PREF, Context.MODE_PRIVATE);
-                SharedPreferences.Editor prefeditor = prefs.edit();
+        //first check for web link. (sli
+        WebClickIntentProccessor webprocessor = factory.getWebIntentProcessor(intent);
 
-                prefeditor.putString(TrackingConstants.TRACKING_PREF_ID, (String) clickref);
-                prefeditor.putBoolean(TrackingConstants.TRACKING_PREF_SETUP_COMPLETE, true);
-                prefeditor.apply();
+        if (webprocessor.getMobileTrackingID() != null) {
+            this.storage.putTrackingID(webprocessor.getMobileTrackingID());
+            return webprocessor.getFilteredIntent();
+        }
 
-                this.clickRef = clickref;
-                this.setupComplete = true;
+        AppClickIntentProcessor appprocessor = factory.getAppIntentProcessor(intent, TrackingConstants.TRACKING_INTENT_CAMREF);
 
-                //filter intent to in case user wants to retrieve it without intent.
+        if (appprocessor.getCamref() != null) {
+            this.storage.putCamrefQuery(appprocessor.getCamref());
+            return appprocessor.getFilteredIntent();
+        }
 
-                Intent filteredintent =(Intent) intent.clone();
-                String filteredpath = path.replaceFirst("/mobiletrackingid:\\w*", "");
-                Uri filtereddata = intent.getData().buildUpon().path(filteredpath).build();
+        UniversalIntentProcessor universalprocessor = factory.getUniversalIntentProcessor(intent, this.urlHelper);
 
-                return filteredintent;
-            }
+        if (universalprocessor.getCamref() != null) {
+            this.storage.putCamrefQuery(universalprocessor.getCamref());
+            return universalprocessor.getFilteredIntent();
         }
 
         return null;
     }
 
-
-    @Override
-    public void requestQueueDidCompleteRequest(TrackingRequestQueue queue, TrackingRequest request, String result) {
-
-        if (queue.equals(this.clickRefQueue) && this.context != null && this.context.get() != null) {
-            try {
-                JSONObject jsonresult = new JSONObject(result);
-
-                //store clickref
-                Object clickref = jsonresult.get(TrackingConstants.TRACKING_ID_KEY);
-
-                SharedPreferences prefs = this.context.get().getSharedPreferences(TrackingConstants.TRACKING_PREF, Context.MODE_PRIVATE);
-                SharedPreferences.Editor prefeditor = prefs.edit();
-
-                if ((clickref instanceof String)) { //valid clickref
-                    prefeditor.putString(TrackingConstants.TRACKING_PREF_ID, (String) clickref);
-
-                    this.clickRef = (String) clickref;
-                } else if ((clickref instanceof Boolean)) { //'inactive' response.
-                    prefeditor.putBoolean(TrackingConstants.TRACKING_PREF_ACTIVE, ((Boolean) clickref).booleanValue());
-                }
-
-                //FIXME: serves no purpose at present.
-                prefeditor.putBoolean(TrackingConstants.TRACKING_PREF_SETUP_COMPLETE, true);
-
-                prefeditor.apply();
-
-                //retrieve deeplink
-                String deeplink = jsonresult.optString(TrackingConstants.DEEPLINK_KEY, null);
-
-                try {
-                    if (deeplink != null) {
-
-                        if (this.callback != null) {
-                            this.callback.MeasurementServiceDidRegisterDidRetrieveDeepLink(this, deeplink);
-                        }
-                        else {
-                            String action = URLDecoder.decode(jsonresult.optString(TrackingConstants.DEEPLINK_ACTION_KEY, Intent.ACTION_VIEW), "UTF-8").trim();
-                            Intent deeplinkintent = new Intent(action, Uri.parse(URLDecoder.decode(deeplink, "UTF-8")));
-                            deeplinkintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                            this.context.get().startActivity(deeplinkintent);
-                        }
-                    }
-                } catch (UnsupportedEncodingException exception) {
-                    Log.d(TrackingConstants.TRACKING_LOG, "Unsupported encoding in deeplink url.");
-                }
-            } catch (JSONException exception) {
-                Log.d(TrackingConstants.TRACKING_LOG, "Invalid JSON in click request.");
-            }
-        }
+    static Intent trackedIntent(Intent intent, String camref) {
+        return MeasurementService.trackedIntent(intent, camref, null, new IntentFactory());
     }
 
-    @Override
-    public void requestQueueErrorOnRequest(TrackingRequestQueue queue, TrackingRequest request, Exception error) {
-        Log.d(TrackingConstants.TRACKING_LOG, "Mobile Tracking Request has failed.");
+    static Intent trackedIntent(Intent intent, String camref, String aaid) {
+        return MeasurementService.trackedIntent(intent, camref, aaid, new IntentFactory());
+    }
+
+    //convert an intent to one that is tracked by mobile tracking.
+    static Intent trackedIntent(Intent intent, String camref, String aaid, IntentFactory factory)
+    {
+        Intent trackedintent = factory.getIntent(intent);
+        MeasurementService.addCamrefToIntent(trackedintent, camref);
+
+        if (intent.getData() != null) {
+            final String scheme = intent.getData().getScheme();
+
+            //for the present we'll approximate universal schemes to http and https.
+            if (intent.getAction() == Intent.ACTION_VIEW && (scheme.equals("http") || scheme.equals("https"))) {
+                trackedintent.setData(MeasurementService.measurementServiceURI(camref, aaid, intent.getData(), null));
+            }
+        }
+
+        return trackedintent;
+    }
+
+    /**
+     * Adds a campaign reference to an intent for affiliate tracking.
+     * @param intent
+     * @return
+     */
+    public static void addCamrefToIntent(Intent intent, String camref) {
+        intent.putExtra(TrackingConstants.TRACKING_INTENT_CAMREF, camref);
+    }
+
+    public static Uri measurementServiceURI(String camref, Uri destinationuri, Uri deeplink) {
+        return MeasurementService.measurementServiceURI(camref,null, destinationuri, deeplink, false);
+    }
+
+    public static Uri measurementServiceURI(String camref,@Nullable String advertisingid, Uri destinationuri, Uri deeplink) {
+        return MeasurementService.measurementServiceURI(camref, advertisingid, destinationuri, deeplink, false);
+    }
+
+    public static Uri measurementServiceURI(String camref,@Nullable String advertisingid, Uri destinationuri, Uri deeplink, boolean isDebug) {
+        return MeasurementService.measurementServiceURI(camref, advertisingid, destinationuri, deeplink, isDebug, new UriBuilderFactory());
+    }
+
+    public static Uri measurementServiceURI(@NonNull String camref,@Nullable String advertisingid,
+                                            @NonNull Uri destinationuri, @Nullable Uri deeplink,
+                                            boolean debuguri, UriBuilderFactory builderfactory) {
+
+        TrackingURLHelper trackinghelper = new TrackingURLHelper(debuguri);
+        trackinghelper.setDebug(debuguri);
+
+        MeasurementServiceURIBuilder builder = builderfactory.getTrackingUriBuilder(trackinghelper);
+
+        builder.setDestination(destinationuri);
+        builder.setCamref(camref);
+
+        if (advertisingid != null) {
+            builder.putAlias("aaid", advertisingid);
+        }
+
+        if (deeplink != null && AppStoreUriSpotter.isAppStoreURI(destinationuri)) {
+            builder.setDeeplink(deeplink);
+            builder.setSkipDeepLink(true);
+        }
+
+        return builder.build();
+    }
+
+    private static boolean startActvity(Context context, Intent intent) {
+
+        //convert exception error flow to boolean to aid the readability of the code.
+        boolean activityloaded = true;
+
+        try {
+            context.startActivity(intent);
+        }
+        catch (ActivityNotFoundException activitynotfound) {
+            activityloaded = false;
+        }
+
+        return activityloaded;
+    }
+
+    public static void openIntentWithAlternativeURI(Context context,Intent intent,String camref, Uri uri) {
+        openIntentWithAlternativeURI(context, intent, camref, uri, new IntentFactory());
+    }
+
+    static void openIntentWithAlternativeURI(Context context,Intent intent,String camref, Uri uri, IntentFactory factory) {
+        //gonna be using in the inner classes, so need to be final.
+        final Context thecontext = context;
+        final String thecamref= camref;
+        final Intent theintent = intent;
+        final Uri theuri = uri;
+
+        final IntentFactory intentfactory = factory;
+
+        //retrieve the AAID on a background thread.
+        Task.callInBackground(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                try {
+                    if (Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient") != null) {
+
+                        AdvertisingIdClient.Info info = AdvertisingIdClient.getAdvertisingIdInfo(thecontext);
+
+                        return info.getId();
+                    }
+                    else {
+                        return null;
+                    }
+                }
+                catch(Exception advertisingidfail) {
+                    ServiceLog.debug("Retrieval of advertising ID failed with error:  " +  advertisingidfail.toString());
+
+                    return null;
+                }
+            }
+        }).continueWith(new Continuation<String, Void>() {
+            @Override
+            public Void then(Task<String> task) throws Exception {
+                Intent trackedintent = MeasurementService.trackedIntent(theintent, thecamref, task.getResult(), intentfactory);
+
+                //try and open the new uri
+                boolean intentloaded = MeasurementService.startActvity(thecontext, trackedintent);
+
+                //if it fails, try open the given alternative url.
+                if (!intentloaded) {
+
+                    Uri deeplinkuri = (theintent.getData() == null) ? null : theintent.getData();
+
+                    Uri trackeduri = MeasurementService.measurementServiceURI(thecamref, task.getResult(), theuri, deeplinkuri);
+                    Intent alternativeintent = intentfactory.getIntent(Intent.ACTION_VIEW, trackeduri);
+                    alternativeintent.addCategory(Intent.CATEGORY_BROWSABLE);
+
+                    startActvity(thecontext, alternativeintent);
+                }
+
+                return null;
+            }
+        });
     }
 
     protected void setCampaignID(String campaignID) {
-        this.campaignID = campaignID.trim();
+        String trimmedcampaignid = campaignID.trim();
+
+        this.campaignID = trimmedcampaignid;
+        this.eventQueue.setCampaignID(campaignID);
     }
 
     protected void setAdvertiserID(String advertiserID) {
-        this.phgAdvertiserID = advertiserID.trim();
-    }
-
-    protected void setClickRef(String clickRef) {
-        this.clickRef = clickRef;
+        this.advertiserID = advertiserID.trim();
     }
 
     protected String getAdvertiserID() {
-        return phgAdvertiserID;
+        return advertiserID;
     }
 
     protected String getCampaignID() {
         return campaignID;
     }
 
-    protected String getClickRef() {
-        return clickRef;
-    }
-
-
     protected Reachability getReachability() {return this.reachability;}
-
-    protected boolean isTrackingActive() {
-        return trackingActive;
-    }
-
-
-    public String getIdfa() {
-        return idfa;
-    }
-
-    public void setIdfa(String idfa) {
-        this.idfa = idfa;
-    }
-
-    public boolean willGenerateActiveFingerprint() {
-        return generateActiveFingerprint;
-    }
-
-    public void setGenerateActiveFingerprint(boolean generateActiveFingerprint) {
-        this.generateActiveFingerprint = generateActiveFingerprint;
-    }
-
-    public void setDebug(boolean debug)
-    {
-        this.urlHelper.setDebug(debug);
-    }
 
     public void setCallback(MeasurementServiceCallback callback) { this.callback = callback;}
 
+    @Override
+    public void requestQueueDidCompleteRequest(TrackingRequestQueue queue, TrackingRequest request, String result) {
+        ServiceLog.debug("Event request completed.");
+    }
+
+    @Override
+    public void requestQueueErrorOnRequest(TrackingRequestQueue queue, TrackingRequest request, Exception error) {
+        ServiceLog.debug("Event request failed with error: " + error.toString());
+    }
+
+    @Override
+    public void registerRequestQueueDidComplete(RegisterRequestQueue queue, RegisterRequest request, String result)
+    {
+        this.registerRequestQueueDidComplete(queue, request, result, new RegistrationProcessorFactory());
+    }
+
+    void registerRequestQueueDidComplete(RegisterRequestQueue queue, RegisterRequest request, String result,
+                                         RegistrationProcessorFactory registerFactory) {
+
+        if (this.status == MeasurementServiceStatus.QUERYING) {
+
+            RegistrationProcessor registrationprocessor = registerFactory.getRequestProcessor(result);
+
+            //clear camref
+            if (request.getCamref() != null && request.getCamref().equals(this.storage.getCamRef())) {
+                this.storage.clearCamref();
+            }
+
+            //clear referrer
+            if (request.getReferrer() != null && request.getReferrer().equals(this.storage.getReferrer())) {
+                this.storage.clearReferrer();
+            }
+
+            //if the registration has failed
+            if (registrationprocessor.hasRegistrationFailed()) {
+                //if there's already a tracking id, then just return to using it.
+                if (this.storage.getTrackingID() != null) {
+                    this.setStatus(MeasurementServiceStatus.ACTIVE);
+                    this.eventQueue.setTrackingIDForIncompleteRequests(this.storage.getTrackingID());
+                }
+                else {
+                    this.storage.putTrackingInactive();
+                    this.setStatus(MeasurementServiceStatus.INACTIVE);
+                    this.eventQueue.clearIncompleteRequests();
+                }
+            }
+            else {
+                this.setStatus(MeasurementServiceStatus.ACTIVE);
+                this.storage.putTrackingID(registrationprocessor.getTrackingID());
+
+                //call the callback for registration complete
+                if (this.callback != null) {
+                    this.callback.MeasurementServiceDidCompleteRegistration(this, registrationprocessor.getTrackingID());
+                }
+
+                //set the referrer
+                if (registrationprocessor.getReferrer() != null) {
+                    this.referrer = registrationprocessor.getReferrer();
+                }
+
+                //get the deep link
+                if (registrationprocessor.getDeeplink() != null) {
+                    this.deepLinkIntent =  new Intent(Intent.ACTION_VIEW, registrationprocessor.getDeeplink());
+
+                    //callback & referrer.
+                    if (this.callback != null) {
+                        this.callback.MeasurementServiceWillOpenDeepLink(this, this.deepLinkIntent.getData());
+                    }
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public void registerRequestQueueDidError(RegisterRequestQueue queue, RegisterRequest request, Exception error) {
+        ServiceLog.debug("Register queue failure. " + error.toString());
+    }
+
+    /**
+     * Return the intent that
+     * @return
+     */
+    @Nullable
+    public Intent getDeepLinkIntent() {
+        return deepLinkIntent;
+    }
+
+    @Nullable
+    public Uri getReferrer() {
+        return referrer;
+    }
+
+    @Nullable
+    public String getTrackingID() {
+        //guard for pre-init.
+
+        if (this.storage == null) {
+            return null;
+        }
+        else {
+            return this.storage.getTrackingID();
+        }
+    }
+
+    @NonNull
+    public MeasurementServiceConfiguration getConfiguration() {
+        return this.config;
+    }
+
+    @NonNull
+    public MeasurementServiceStatus getStatus() {
+        return this.status;
+    }
+
+    //This method is used for testing, to avoid having to initialization.
+    void putStatus(MeasurementServiceStatus status) {
+        this.status = status;
+    }
+
+    void putReachability(Reachability reachability) {
+        this.reachability = reachability;
+    }
+
+    void putMeasurementStorage(MeasurementServiceStorage storage) {
+        this.storage = storage;
+    }
+
+    void putEventQueue(EventRequestQueue eventQueue) {
+        this.eventQueue = eventQueue;
+    }
 }

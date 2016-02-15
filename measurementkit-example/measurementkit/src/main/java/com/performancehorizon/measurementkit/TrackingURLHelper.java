@@ -8,14 +8,26 @@ public class TrackingURLHelper {
     private boolean isDebug = false;
 
     public String urlStringForTracking() {
-        return (this.isDebug) ? "http://m.prf.local": "https://m.prfhn.com";
+        return this.scheme() + "://" + this.hostForMobileTracking();
     }
 
-    public boolean isDebug() {
-        return isDebug;
+    public String scheme() {
+        return (this.isDebug) ? "http" : "https";
+    }
+
+    public String hostForMobileTracking() {
+        return (this.isDebug) ? "m.prf.local" : "m.prf.hn";
+    }
+
+    public String hostForTracking() {
+        return (this.isDebug) ? "prf.local" : "prf.hn";
     }
 
     public void setDebug(boolean isDebug) {
+        this.isDebug = isDebug;
+    }
+
+    public TrackingURLHelper(boolean isDebug) {
         this.isDebug = isDebug;
     }
 }

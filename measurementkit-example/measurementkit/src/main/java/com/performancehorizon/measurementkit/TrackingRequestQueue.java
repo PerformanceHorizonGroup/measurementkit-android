@@ -1,9 +1,8 @@
 package com.performancehorizon.measurementkit;
 
-import com.squareup.okhttp.OkHttpClient;
-
 import bolts.Continuation;
 import bolts.Task;
+import okhttp3.OkHttpClient;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -47,6 +46,52 @@ public class TrackingRequestQueue {
         }
     }
 
+    private void makeSynchronousRequest(TrackingRequest request)
+    {
+        synchronized(this)
+        {
+            this.setRequestActive(true);
+        }
+
+        final TrackingRequest therequest = request;
+
+        Exception taskerror = null;
+        String result = null;
+
+        try {
+            result = therequest.execute(new OkHttpClientWrapper(TrackingRequestQueue.this.client));
+        }
+        catch(Exception exception) {
+            taskerror = exception;
+        }
+
+        synchronized (TrackingRequestQueue.this) {
+            TrackingRequestQueue.this.setRequestActive(false);
+        }
+
+        if (taskerror == null) {
+            if (TrackingRequestQueue.this.delegate != null &&  TrackingRequestQueue.this.delegate.get() != null) {
+                TrackingRequestQueue.this.delegate.get().requestQueueDidCompleteRequest(TrackingRequestQueue.this, therequest, result);
+            }
+
+            synchronized (TrackingRequestQueue.this) { //as it was succesful, the request can be removed from the queue.
+                int requestedindex = TrackingRequestQueue.this.requestList.indexOf(therequest);
+                TrackingRequestQueue.this.requestList.remove(requestedindex);
+            }
+        }
+        else
+        {
+            TrackingRequestQueue.this.failCount += 1;
+
+            if (TrackingRequestQueue.this.delegate != null &&  TrackingRequestQueue.this.delegate.get() != null) {
+                TrackingRequestQueue.this.delegate.get().requestQueueErrorOnRequest(TrackingRequestQueue.this,therequest, taskerror);
+            }
+        }
+
+        TrackingRequestQueue.this.nextRequest();
+
+    }
+
     private void makeRequest(TrackingRequest request)
     {
         synchronized(this)
@@ -59,7 +104,7 @@ public class TrackingRequestQueue {
         Task.callInBackground(new Callable<String>() {
             @Override
             public String call() throws Exception {
-                return therequest.execute(TrackingRequestQueue.this.client);
+                return therequest.execute(new OkHttpClientWrapper(TrackingRequestQueue.this.client));
             }
 
         }).continueWith(new Continuation<String, Void>() {

@@ -120,7 +120,7 @@ public class Sale {
      * calculated according to campaing defaults)
      */
     protected @Nullable BigDecimal getOverride() {
-        return override;
+        return this.override;
     }
 
     /**
@@ -147,11 +147,16 @@ public class Sale {
     public void setVoucher(String voucher) {
         this.voucher = voucher;
     }
-    
+
     protected @Nullable String getCountry() {
         return country;
     }
 
+    /**
+     * Sets the country code in which the sale took place.
+     * ISO 3166-1 Alpha-3 code (e.g United Kingdom - GBR)
+     * @param country - the country in which sale took place
+     */
     public void setCountry(String country) {
         this.country = country;
     }

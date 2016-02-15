@@ -1,32 +1,37 @@
 package com.performancehorizon.measurementkit;
 
-
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
-
 import java.io.IOException;
+import java.util.Map;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * Created by owainbrown on 02/03/15.
  */
 public class TrackingRequest {
 
-    private com.squareup.okhttp.Request request;
+    private Request request;
 
     private String url;
     private RequestBody postBody;
+
+    //so you can refer back to the original params used to construct.
+    //(quick solution, this class is meant to encapsulate transport rather than a whole request chain)
+    private Map<String, Object> requestParameters;
 
     public TrackingRequest(String url, RequestBody postBody) {
        this.setUrl(url);
        this.setPostBody(postBody);
     }
 
-    public String execute(OkHttpClient client) throws IOException{
+    public String execute(OkHttpClientWrapper client) throws IOException{
 
-        com.squareup.okhttp.Request trackingrequest = new com.squareup.okhttp.Request.Builder()
+        okhttp3.Request trackingrequest = new okhttp3.Request.Builder()
                 .url(this.getUrl())
-                .post(getPostBody())
+                .post(this.getPostBody())
                 .build();
 
         Response response =  client.newCall(trackingrequest).execute();
@@ -48,5 +53,15 @@ public class TrackingRequest {
 
     public void setPostBody(RequestBody postBody) {
         this.postBody = postBody;
+    }
+
+    public void setRequestParameters(Map<String, Object> params)
+    {
+        this.requestParameters = params;
+    }
+
+    public Map<String, Object> getRequestParameters()
+    {
+        return this.requestParameters;
     }
 }

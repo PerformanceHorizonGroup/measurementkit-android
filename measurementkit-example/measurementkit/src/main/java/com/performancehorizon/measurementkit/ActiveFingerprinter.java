@@ -1,4 +1,4 @@
-package com.performancehorizon.measurementkit;
+/*package com.performancehorizon.measurementkit;
 
 import android.content.Context;
 import android.os.Handler;
@@ -11,7 +11,7 @@ import java.util.Map;
 
 /**
  * Created by owainbrown on 26/03/15.
- */
+
 public class ActiveFingerprinter {
     private MobileTrackingActiveFingerprinterCallback callback;
     private WeakReference<Context> weakContext;
@@ -58,3 +58,4 @@ public class ActiveFingerprinter {
         });
     }
 }
+*/

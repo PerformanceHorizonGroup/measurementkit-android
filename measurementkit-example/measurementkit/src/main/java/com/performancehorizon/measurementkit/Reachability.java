@@ -1,5 +1,6 @@
 package com.performancehorizon.measurementkit;
 
+import android.annotation.TargetApi;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -16,12 +17,13 @@ public class Reachability {
     @Nullable
     private ConnectivityManager connectivityManager;
 
-    public Reachability(ConnectivityManager connectivity, final ReachabilityCallback callback)
+    @TargetApi(21)
+    public Reachability(@Nullable ConnectivityManager connectivity, final ReachabilityCallback callback)
     {
         this.callback= callback;
         this.connectivityManager = connectivity;
 
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (connectivity != null && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             connectivity.addDefaultNetworkActiveListener(new ConnectivityManager.OnNetworkActiveListener() {
                 @Override
                 public void onNetworkActive() {

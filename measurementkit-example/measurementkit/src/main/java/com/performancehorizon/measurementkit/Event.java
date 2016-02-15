@@ -4,10 +4,14 @@ import android.support.annotation.Nullable;
 
 import com.performancehorizon.measurementkit.Sale;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 
 /**
@@ -16,26 +20,30 @@ import java.util.Map;
  * An example could be registration, or an in-app purchase.
  */
 public class Event {
-    private String eventCategory;
-    private Map<String, Object> eventData;
+    private UUID internalEventID;
+    private Map<String, String> meta;
+    private Date date;
 
-    @Nullable
-    private List<Sale> sales;
-    @Nullable
-    private String salesCurrency;
+    private @Nullable String conversionReference;
+    private @Nullable String customerReference;
+    private @Nullable String category;
+    private @Nullable List<Sale> sales;
+    private @Nullable String salesCurrency;
 
     private Event()
     {
-        this.eventData = new HashMap<>();
+        this.meta = new HashMap<>();
+        this.internalEventID = UUID.randomUUID();
+        this.date = new Date();
     }
 
     /**
      * initialise event with category
-     * @param eventCategory - category of the event (corresponds to the product of the created conversion)
+     * @param category - category of the event (corresponds to the product of the created conversion)
      */
-    public Event(String eventCategory) {
+    public Event(String category) {
         this();
-        this.eventCategory = eventCategory;
+        this.category = category;
     }
 
     /**
@@ -45,7 +53,7 @@ public class Event {
      */
     public Event(Sale sale, String currency) {
         this();
-        this.addSale(sale, currency);
+        this.setSale(sale, currency);
     }
 
 
@@ -56,91 +64,91 @@ public class Event {
      */
     public Event(List<Sale> sales, String currency) {
         this();
-        this.addSales(sales, currency);
+        this.setSales(sales, currency);
     }
 
-    protected Map<String, Object> getEventData(){
-        return this.eventData;
+    //Get meta data for given event.
+    protected Map<String, String> getMeta(){
+        return this.meta;
     }
 
-    @Nullable
-    protected Map<String, Object> getSalesData() {
-
-        if (sales == null || salesCurrency == null) {
-            return null;
-        }
-        else {
-            Map<String, Object> items = new HashMap<>();
-            List<Map<String, String>> thesales = new ArrayList<>();
-
-            for (Sale sale : sales) {
-
-                Map<String, String> item = new HashMap<>();
-
-                item.put("category", sale.getCategory());
-                item.put("value", sale.getValue().toString());
-
-                if (sale.getQuantity() != null) {
-                    item.put("quantity", sale.getQuantity().toString());
-                }
-
-                if (sale.getSKU() != null) {
-                    item.put("sku", sale.getQuantity().toString());
-                }
-
-                thesales.add(item);
-            }
-
-            items.put("sales", thesales);
-            items.put("currency", this.salesCurrency);
-
-            return items;
-        }
+    public @Nullable String getCategory() {
+        return this.category;
     }
 
-    protected String getEventTag() {
-        return this.eventCategory;
+    public void addMetaItem(String key, String value) {
+        this.meta.put(key, value);
     }
 
-    public void addEventInformation(String key, Object value) {
-        this.eventData.put(key, value);
+    protected List<Sale> getSales() {
+        return this.sales;
     }
 
-    public void addSale(Sale sale, String currency) {
+    private void setSale(Sale sale, String currency) {
 
         List<Sale> items = new ArrayList<Sale>();
         items.add(sale);
 
-        this.addSales(items, currency);
+        this.setSales(items, currency);
     }
 
-    public void addSales(List<Sale> sales, String currency)
+    private void setSales(List<Sale> sales, String currency)
     {
         this.salesCurrency = currency;
         this.sales = sales;
+    }
+
+    protected @Nullable String getSalesCurrency() {
+        return this.salesCurrency;
+    }
+
+    protected String getInternalEventID() {
+        return this.internalEventID.toString();
+    }
 
 
-        /*List<Map<String, String>> items = new ArrayList<Map<String, String>>();
+    /**
+     * get the conversion reference for the event.  An example could be the order id corresponding to the sales.
+     */
+    public @Nullable String getConversionReference() {
+        return conversionReference;
+    }
 
-        for (MobileTrackingSale sale : sales) {
+    /**
+     * set the conversion reference for the event.  An example could be the order id corresponding to the sales.
+     * @param conversionReference - advertiser conversion reference for this event
+     */
+    public void setConversionReference(String conversionReference) {
+        this.conversionReference = conversionReference;
+    }
 
-            Map<String, String> item = new HashMap<String, String>();
+    /**
+     * get the customer reference for the event.  An example could be a tranformation of the username used
+     * by the user to log in.
+     */
+    public @Nullable String getCustomerReference() {
+        return this.customerReference;
+    }
 
-            item.put("_phg_category", sale.getCategory());
-            item.put("_phg_value", sale.getValue().toString());
+    /**
+     * set the customer reference for the event.  An example could be a tranformation of the username used
+     * by the user to log in.
+     * @warning please avoid entering personally identifiable information in this field.  A way to avoid this could be to
+     * hash the usernames entered.
+     */
+    public void setCustomerReference(String customerReference) {
+        this.customerReference = customerReference;
+    }
 
-            if (sale.getQuantity() != null) {
-                item.put("_phg_quantity", sale.getQuantity().toString());
-            }
+    /**
+     * sets the date the event occurred.
+     * @param date
+     */
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
-            if (sale.getSKU() != null) {
-                item.put("_phg_sale", sale.getQuantity().toString());
-            }
-
-            items.add(item);
-        }
-
-        this.addEventInformation("_phg_items", items);
-        this.addEventInformation("_phg_currency", currency);*/
+    protected Date getDate() {
+        return this.date;
     }
 }

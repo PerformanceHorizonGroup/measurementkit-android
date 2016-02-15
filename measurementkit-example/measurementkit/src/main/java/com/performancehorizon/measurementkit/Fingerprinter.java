@@ -45,9 +45,9 @@ public class Fingerprinter {
         this.weakContext = new WeakReference<>(context);
     }
 
-    public Map<String, Object> generateFingerprint()
+    public Map<String, String> generateFingerprint()
     {
-        HashMap<String, Object> returnedfingerprint= new HashMap<>();
+        HashMap<String, String> returnedfingerprint= new HashMap<>();
 
         //SDK values not reliant on context.
         returnedfingerprint.put(FingerprintConstants.ANDROID_MODEL, Build.MODEL);
@@ -71,13 +71,13 @@ public class Fingerprinter {
                     if (applicationinfo != null) {
 
                         File applicationsourcedir = new File(applicationinfo.sourceDir);
-                        returnedfingerprint.put(FingerprintConstants.ANDROID_APP_MODIFIED, new Long(applicationsourcedir.lastModified() / 1000));
+                        returnedfingerprint.put(FingerprintConstants.ANDROID_APP_MODIFIED, String.valueOf(applicationsourcedir.lastModified() / 1000));
                     }
 
                     PackageInfo packageinfo = packagemanager.getPackageInfo(applicationpackage, 0);
 
                     if (packageinfo != null) {
-                        returnedfingerprint.put(FingerprintConstants.ANDROID_APP_VERSION_CODE, new Integer(packageinfo.versionCode));
+                        returnedfingerprint.put(FingerprintConstants.ANDROID_APP_VERSION_CODE, String.valueOf(packageinfo.versionCode));
                         returnedfingerprint.put(FingerprintConstants.ANDROID_APP_VERSION, packageinfo.versionName);
                     }
 

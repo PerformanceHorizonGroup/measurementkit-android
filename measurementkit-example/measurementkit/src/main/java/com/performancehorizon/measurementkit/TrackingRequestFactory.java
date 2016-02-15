@@ -1,9 +1,9 @@
 package com.performancehorizon.measurementkit;
 
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.RequestBody;
-
 import org.json.JSONObject;
+
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 
 /**
  * Created by owainbrown on 13/03/15.
@@ -19,7 +19,9 @@ public class TrackingRequestFactory {
     public TrackingRequest getRequest(String url, JSONObject jsonObject) {
 
         MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-        return new TrackingRequest(url, RequestBody.create(JSON, jsonObject.toString()));
+        String json = jsonObject.toString();
+
+        return new TrackingRequest(url, RequestBody.create(JSON, json));
     }
 
     public static void setDefaultRequestFactory(TrackingRequestFactory factory)
