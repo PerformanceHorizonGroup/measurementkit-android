@@ -14,20 +14,25 @@ import java.util.Map;
  */
 public class RegisterRequest {
 
-    @Nullable private String advertiserID;
-    @Nullable private String campaignID;
-    @Nullable private Map<String, String> fingerprint;
-    @Nullable private String camref;
-    @Nullable private String referrer;
-    @Nullable private String aaid;
+    @Nullable
+    private String advertiserID;
+    @Nullable
+    private String campaignID;
+    @Nullable
+    private Map<String, String> fingerprint;
+    @Nullable
+    private String camref;
+    @Nullable
+    private String referrer;
+    @Nullable
+    private String aaid;
+    private boolean installed = false;
 
-    public RegisterRequest(@Nullable Context context)
-    {
+    public RegisterRequest(@Nullable Context context) {
         this(context, false);
     }
 
     /**
-     *
      * @param context
      * @param doNotTrackAAID
      * @Warning Do not use this constructor on the main thread, this may cause unexpected exceptions.
@@ -74,6 +79,11 @@ public class RegisterRequest {
         return this;
     }
 
+    public RegisterRequest setInstalled() {
+        this.installed=true;
+        return this;
+    }
+
     @Nullable
     public String getAdvertiserID() {
         return advertiserID;
@@ -101,4 +111,6 @@ public class RegisterRequest {
 
     @Nullable
     public String getAaid() {return aaid;};
+
+    public boolean getInstalled() {return installed;}
 }
