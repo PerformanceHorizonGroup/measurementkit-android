@@ -55,7 +55,7 @@ public class TestMeasurementService_Publisher_Open {
     public void testOpenURI() throws Exception {
 
         MeasurementService.openIntentWithAlternativeURI(context, new Intent(Intent.ACTION_DEFAULT, Uri.parse("exactview://www.google.com")),
-                "CAMREF", Uri.parse("http://www.google.com"), intentFactory);
+                "CAMREF", Uri.parse("http://www.google.com"), intentFactory, false);
 
         verify(context, timeout(100)).startActivity(clonedIntent);
     }
@@ -68,7 +68,7 @@ public class TestMeasurementService_Publisher_Open {
         doThrow(new ActivityNotFoundException()).when(context).startActivity(clonedIntent);
 
         MeasurementService.openIntentWithAlternativeURI(context, new Intent(Intent.ACTION_DEFAULT, Uri.parse("exactview://www.google.com")),
-                "CAMREF", Uri.parse("http://www.google.com"), intentFactory);
+                "CAMREF", Uri.parse("http://www.google.com"), intentFactory, false);
 
         verify(context, timeout(100)).startActivity(clonedIntent);
         verify(context, timeout(100)).startActivity(alternativeIntent);

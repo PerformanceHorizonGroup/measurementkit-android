@@ -91,6 +91,8 @@ public class TestMeasurementService_Publisher_Uris {
                 SERVICEURI);
 
         verify(builder).setDestination(DESTINATION);
+        verify(builder).setDeeplink(DEEPLINK);
+        verify(builder).setSkipDeepLink(true);
         verify(builder).setCamref(CAMREF);
 
         verify(builder).build();
