@@ -69,7 +69,7 @@ public class MeasurementServiceURIBuilder {
                 }
 
                 if (this.deeplink != null) {
-                    builder.appendQueryParameter("deep_link", destination.toString());
+                    builder.appendQueryParameter("deep_link", deeplink.toString());
                 }
 
                 return builder.build();
