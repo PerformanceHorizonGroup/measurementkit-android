@@ -136,6 +136,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
     //singleton
     private static MeasurementService _sharedTrackingService;
 
+
     //service configuration
     @NonNull private  MeasurementServiceConfiguration config;
     @NonNull private  MeasurementServiceStatus status = MeasurementServiceStatus.AWAITING_INITIALISE;
@@ -161,6 +162,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
     @Nullable private Uri referrer;
     @Nullable private Intent deepLinkIntent;
+    private boolean isInstalled =  false;
 
     protected class TrackingConstants
     {
@@ -201,8 +203,13 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
     public MeasurementService(MeasurementServiceConfiguration config) {
 
         this(config,
-                new RegisterRequestQueue(new TrackingRequestQueue(new OkHttpClient()), new TrackingRequestFactory(), new TrackingURLHelper(config.getDebugModeActive())),
-                new EventRequestQueue(new TrackingRequestQueue(new OkHttpClient()), new TrackingRequestFactory(), new TrackingURLHelper(config.getDebugModeActive())),
+                new RegisterRequestQueue(new TrackingRequestQueue(new OkHttpClient()),
+                new TrackingRequestFactory(),
+                new TrackingURLHelper(config.getDebugModeActive())),
+                new EventRequestQueue(
+                        new TrackingRequestQueue(new OkHttpClient()),
+                        new TrackingRequestFactory(),
+                        new TrackingURLHelper(config.getDebugModeActive())),
                 new FingerprinterFactory()
         );
     }
@@ -210,9 +217,8 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
     public MeasurementService(MeasurementServiceConfiguration config,
                               RegisterRequestQueue registerQueue,
                               EventRequestQueue eventQueue,
-                              FingerprinterFactory fingerprintFactory
-
-    ) {
+                              FingerprinterFactory fingerprintFactory)
+    {
 
         this.config = config;
 
@@ -264,6 +270,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
     private void register(RegisterRequestFactory registerRequestFactory) {
 
         final RegisterRequestFactory therequestfactory = registerRequestFactory;
+        final boolean installed = this.isInstalled;
 
         Task.callInBackground(new Callable<RegisterRequest>() {
             @Override
@@ -284,6 +291,10 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                     registerrequest.setCamref(MeasurementService.this.storage.getCamRef());
                 } else if (MeasurementService.this.storage.getReferrer() != null) {
                     registerrequest.setReferrer(MeasurementService.this.storage.getReferrer());
+                }
+
+                if (installed) {
+                    registerrequest.setInstalled();
                 }
 
                 MeasurementService.this.registerQueue.addRegisterRequest(registerrequest);
@@ -521,7 +532,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
             builder.putAlias("aaid", advertisingid);
         }
 
-        if (deeplink != null && AppStoreUriSpotter.isAppStoreURI(destinationuri)) {
+        if (deeplink != null) {
             builder.setDeeplink(deeplink);
             builder.setSkipDeepLink(true);
         }
@@ -557,15 +568,20 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
      * @warning - part of this method will be called on a background executor, so the activity launch will be asychronous.
      */
     public static void openIntentWithAlternativeURI(@NonNull Context context,Intent intent,String camref, Uri uri) {
-        openIntentWithAlternativeURI(context, intent, camref, uri, new IntentFactory());
+        openIntentWithAlternativeURI(context, intent, camref, uri, new IntentFactory(), false);
     }
 
-    static void openIntentWithAlternativeURI(Context context,Intent intent,String camref, Uri uri, IntentFactory factory) {
+    static void debugOpenIntentWithAlternativeURI(@NonNull Context context,Intent intent,String camref, Uri uri) {
+        openIntentWithAlternativeURI(context, intent, camref, uri, new IntentFactory(), true);
+    }
+
+    static void openIntentWithAlternativeURI(Context context,Intent intent,String camref, Uri uri, IntentFactory factory, boolean isDebug) {
         //gonna be using in the inner classes, so need to be final.
         final Context thecontext = context;
         final String thecamref= camref;
         final Intent theintent = intent;
         final Uri theuri = uri;
+        final boolean isdebug = isDebug;
 
         final IntentFactory intentfactory = factory;
 
@@ -603,7 +619,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
                     Uri deeplinkuri = (theintent.getData() == null) ? null : theintent.getData();
 
-                    Uri trackeduri = MeasurementService.measurementServiceURI(thecamref, task.getResult(), theuri, deeplinkuri);
+                    Uri trackeduri = MeasurementService.measurementServiceURI(thecamref, task.getResult(), theuri, deeplinkuri, isdebug);
                     Intent alternativeintent = intentfactory.getIntent(Intent.ACTION_VIEW, trackeduri);
                     alternativeintent.addCategory(Intent.CATEGORY_BROWSABLE);
 
@@ -793,5 +809,13 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
     void putEventQueue(EventRequestQueue eventQueue) {
         this.eventQueue = eventQueue;
+    }
+
+    /**
+     * as the metric the measurement service uses to identify installs is an estimate, you
+     * can also determine an install locally, and installs will be
+     */
+    public void setIsInstalled(boolean isInstalled) {
+        this.isInstalled = true;
     }
 }
