@@ -76,4 +76,25 @@ public class TestRegisterRequestJSONBuilder {
         Assert.assertTrue(registration.has("fingerprint"));
     }
 
+    @Test
+    public void testRequestBuildWithInstall() throws Exception
+    {
+        HashMap<String, String> fingerprint = new HashMap<>();
+
+        RegisterRequest request = new RegisterRequest(null);
+        request.setCampaignID("bob");
+        request.setAdvertiserID("bob");
+        request.setFingerprint(fingerprint);
+        request.setInstalled();
+
+
+        RegisterRequestJSONBuilder builder = new RegisterRequestJSONBuilder();
+        JSONObject registration = builder.setRequest(request).build();
+
+        Assert.assertEquals(registration.getString("campaign_id"), "bob");
+        Assert.assertEquals(registration.get("advertiser_id"), "bob");
+        Assert.assertTrue(registration.has("fingerprint"));
+        Assert.assertTrue(registration.getBoolean("install"));
+    }
+
 }

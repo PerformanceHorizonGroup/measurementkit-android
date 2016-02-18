@@ -54,6 +54,10 @@ public class RegisterRequestJSONBuilder {
                     requestjson.put("aaid", this.request.getAaid());
                 }
 
+                if (this.request.getInstalled()) {
+                    requestjson.put("install", true);
+                }
+
                 return requestjson;
             }
             catch(Exception jsonexception) {
