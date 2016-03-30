@@ -1,8 +1,11 @@
 package com.performancehorizon.measurementkit;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Sale item.  Attached to {@link Event}
@@ -21,6 +24,8 @@ public class Sale {
     private String voucher;
     private String country;
 
+    private HashMap<String, String> saleMeta;
+
     /**
      *
      * intialise a sale with a category and a value
@@ -30,6 +35,7 @@ public class Sale {
     public Sale(String category, BigDecimal value) {
         this.category = category;
         this.value= value;
+        this.saleMeta = new HashMap<String, String>();
     }
 
     /**
@@ -159,5 +165,19 @@ public class Sale {
      */
     public void setCountry(String country) {
         this.country = country;
+    }
+
+    /**
+     * Sets a meta item for the sale, an arbitrary key/value that represents a property of the sale.
+     * @param key - the key for the meta item
+     * @param value - the value for the meta item
+     */
+    public void setMetaItem(String key, String value) {
+
+        this.saleMeta.put(key, value);
+    }
+
+    protected @NonNull Map<String, String> getMetaItems() {
+        return this.saleMeta;
     }
 }

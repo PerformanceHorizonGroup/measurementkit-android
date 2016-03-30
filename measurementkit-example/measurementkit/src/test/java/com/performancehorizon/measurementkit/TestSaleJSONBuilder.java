@@ -95,10 +95,57 @@ public class TestSaleJSONBuilder {
         sale.setCountry("USA");
 
         SaleJSONBuilder salebuilder = new SaleJSONBuilder(sale);
-
         JSONObject salejson = salebuilder.build();
 
         Assert.assertEquals(salejson.get("country"), "USA");
         Assert.assertEquals(salejson.length(), 3);
+    }
+
+    @Test
+    public void testSaleWithoutMetaItems() throws Exception {
+
+        Sale sale = new Sale("product", new BigDecimal(0));
+
+        SaleJSONBuilder salebuilder = new SaleJSONBuilder(sale);
+        JSONObject salejson = salebuilder.build();
+
+        Assert.assertNull(salejson.opt("meta"));
+        Assert.assertEquals(salejson.length(), 2);
+    }
+
+    @Test
+    public void testSaleWithSingleMetaItem() throws Exception {
+
+        Sale sale = new Sale("product", new BigDecimal(0));
+        sale.setMetaItem("crazy", "value");
+
+
+        SaleJSONBuilder salebuilder = new SaleJSONBuilder(sale);
+        JSONObject salejson = salebuilder.build();
+        JSONObject metajson = salejson.getJSONObject("meta");
+
+        Assert.assertNotNull(salejson.opt("meta"));
+        Assert.assertEquals(salejson.length(), 3);
+        Assert.assertEquals(metajson.length(), 1);
+        Assert.assertEquals(metajson.get("crazy"), "value");
+    }
+
+    @Test
+    public void testSaleWithMultpleMetaItems() throws Exception {
+
+        Sale sale = new Sale("product", new BigDecimal(0));
+        sale.setMetaItem("crazy", "value");
+        sale.setMetaItem("other", "thing");
+
+        SaleJSONBuilder salebuilder = new SaleJSONBuilder(sale);
+        JSONObject salejson = salebuilder.build();
+        JSONObject metajson = salejson.getJSONObject("meta");
+
+        Assert.assertNotNull(salejson.opt("meta"));
+        Assert.assertEquals(salejson.length(), 3);
+        Assert.assertEquals(metajson.length(), 2);
+        Assert.assertEquals(metajson.get("crazy"), "value");
+        Assert.assertEquals(metajson.get("other"), "thing");
+
     }
 }

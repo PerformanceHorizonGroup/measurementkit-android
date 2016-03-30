@@ -2,6 +2,8 @@ package com.performancehorizon.measurementkit;
 
 import org.json.JSONObject;
 
+import java.util.Map;
+
 /**
  * Created by owainbrown on 12/01/16.
  */
@@ -33,6 +35,16 @@ public class SaleJSONBuilder {
             if (sale.getVoucher() != null) {salejson.put("voucher", sale.getVoucher()); }
 
             if (sale.getCountry() != null) {salejson.put("country", sale.getCountry());};
+
+            if (sale.getMetaItems().size() > 0) {
+                JSONObject meta = new JSONObject();
+
+                for (Map.Entry<String, String> entry: sale.getMetaItems().entrySet()) {
+                    meta.put(entry.getKey(), entry.getValue());
+                }
+
+                salejson.put("meta", meta);
+            }
 
             return salejson;
         }
