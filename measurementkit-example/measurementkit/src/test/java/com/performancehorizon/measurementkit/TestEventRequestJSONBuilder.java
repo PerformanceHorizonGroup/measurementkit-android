@@ -155,7 +155,7 @@ public class TestEventRequestJSONBuilder {
         Assert.assertEquals(eventjson.getString("custref"), "customerreference");
     }
 
-    @Test //test event with meta building
+    @Test //test event with conversion reference
     public void testConversionReference() throws Exception
     {
         EventRequestJSONBuilder eventbuilder = new EventRequestJSONBuilder();
@@ -170,6 +170,40 @@ public class TestEventRequestJSONBuilder {
         JSONObject eventjson = eventbuilder.build();
 
         Assert.assertEquals(eventjson.getString("conversionref"), "conversionreference");
+    }
+
+    @Test
+    public void testVoucher() throws Exception
+    {
+        EventRequestJSONBuilder eventbuilder = new EventRequestJSONBuilder();
+
+        Event event = new Event("category");
+        event.setVoucher("voucher");
+
+        eventbuilder.setEvent(event)
+                .setCampaignID("campaign_id")
+                .setMobileTrackingID("mobile_tracking_id");
+
+        JSONObject eventjson = eventbuilder.build();
+
+        Assert.assertEquals(eventjson.getString("voucher"), "voucher");
+    }
+
+    @Test
+    public void testCountry() throws Exception
+    {
+        EventRequestJSONBuilder eventbuilder = new EventRequestJSONBuilder();
+
+        Event event = new Event("category");
+        event.setCountry("country");
+
+        eventbuilder.setEvent(event)
+                .setCampaignID("campaign_id")
+                .setMobileTrackingID("mobile_tracking_id");
+
+        JSONObject eventjson = eventbuilder.build();
+
+        Assert.assertEquals(eventjson.getString("country"), "country");
     }
 
 

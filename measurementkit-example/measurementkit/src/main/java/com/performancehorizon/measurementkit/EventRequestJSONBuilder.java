@@ -95,13 +95,12 @@ public class EventRequestJSONBuilder {
                 eventrequest.put("conversionref", event.getConversionReference());
             }
 
-            if (event.getCustomerReference() != null) {
-                eventrequest.put("custref", event.getCustomerReference());
-            }
-
-            if (event.getSalesCurrency() != null) {
-                eventrequest.put("currency", event.getSalesCurrency());
-            }
+            //optional string values
+            eventrequest.putOpt("conversionref", event.getConversionReference());
+            eventrequest.putOpt("custref", event.getCustomerReference());
+            eventrequest.putOpt("currency", event.getSalesCurrency());
+            eventrequest.putOpt("country", event.getCountry());
+            eventrequest.putOpt("voucher", event.getVoucher());
 
             return eventrequest;
 

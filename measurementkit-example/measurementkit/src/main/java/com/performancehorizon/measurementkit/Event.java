@@ -29,6 +29,8 @@ public class Event {
     private @Nullable String category;
     private @Nullable List<Sale> sales;
     private @Nullable String salesCurrency;
+    private @Nullable String voucher;
+    private @Nullable String country;
 
     private Event()
     {
@@ -150,5 +152,35 @@ public class Event {
 
     protected Date getDate() {
         return this.date;
+    }
+
+    /**
+     * get the voucher code used with the event
+     * @return Voucher code used in event (may be null)
+     */
+    protected @Nullable String getVoucher() {
+        return voucher;
+    }
+
+    /**
+     * set the voucher code used with the event
+     * @param voucher - voucher code associated with the event
+     *
+     */
+    public void setVoucher(String voucher) {
+        this.voucher = voucher;
+    }
+
+    protected @Nullable String getCountry() {
+        return country;
+    }
+
+    /**
+     * Sets the country code in which the event took place.
+     * ISO 3166-1 Alpha-3 code (e.g United Kingdom - GBR)
+     * @param country - the country in which sale took place
+     */
+    public void setCountry(String country) {
+        this.country = country;
     }
 }
