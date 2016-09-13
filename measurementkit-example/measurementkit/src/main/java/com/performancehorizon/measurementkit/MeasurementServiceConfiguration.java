@@ -6,6 +6,7 @@ package com.performancehorizon.measurementkit;
 public class MeasurementServiceConfiguration {
     private boolean debugModeActive = false;
     private boolean doNotTrackAAID = false;
+    private boolean useActiveFingerprinting = false;
 
     /*private String trackingIDQueryKey = null;
     private String camrefExtraKey = null;
@@ -25,6 +26,15 @@ public class MeasurementServiceConfiguration {
     public void setCamrefExtraKey(String camrefExtraKey) {
         this.camrefExtraKey = camrefExtraKey;
     }*/
+
+    protected boolean useActiveFingerprinting() {
+        return this.useActiveFingerprinting;
+    }
+
+    private void setUseActiveFingerprinting(boolean useActiveFingerprinting) {
+        this.useActiveFingerprinting = useActiveFingerprinting;
+    }
+
 
     public void setDoNotTrackAAID(boolean doNotTrackAAID)
     {
@@ -47,7 +57,15 @@ public class MeasurementServiceConfiguration {
     {
         MeasurementServiceConfiguration debugconfig = new MeasurementServiceConfiguration();
         debugconfig.setDebugMode(true);
+        debugconfig.setUseActiveFingerprinting(true);
 
         return debugconfig;
+    }
+
+    public static MeasurementServiceConfiguration activeFingerprintConfig() {
+        MeasurementServiceConfiguration activeconfig = new MeasurementServiceConfiguration();
+        activeconfig.setUseActiveFingerprinting(true);
+
+        return activeconfig;
     }
 }
