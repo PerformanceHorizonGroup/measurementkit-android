@@ -16,6 +16,8 @@ import bolts.Task;
 import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 
@@ -268,6 +270,10 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
     }
 
     private void register(RegisterRequestFactory registerRequestFactory) {
+        this.register(registerRequestFactory, new HashMap<String, String>());
+    }
+
+    private void register(RegisterRequestFactory registerRequestFactory, final Map<String, String> additions) {
 
         final RegisterRequestFactory therequestfactory = registerRequestFactory;
         final boolean installed = this.isInstalled;
@@ -283,9 +289,12 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                 RegisterRequest registerrequest = task.getResult();
 
                 registerrequest.setCampaignID(MeasurementService.this.campaignID);
-
                 registerrequest.setAdvertiserID(MeasurementService.this.advertiserID);
-                registerrequest.setFingerprint(MeasurementService.this.fingerprinterfactory.getFingerprinter(MeasurementService.this.context.get()).generateFingerprint());
+
+                Map<String, String> fingerprint = MeasurementService.this.fingerprinterfactory.getFingerprinter(MeasurementService.this.context.get()).generateFingerprint();
+                fingerprint.putAll(additions);
+
+                registerrequest.setFingerprint(fingerprint);
 
                 if (MeasurementService.this.storage.getCamRef() != null) {
                     registerrequest.setCamref(MeasurementService.this.storage.getCamRef());
@@ -328,7 +337,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                               @NonNull MeasurementStorageFactory storageFactory,
                               @NonNull ReachabilityFactory reachabilityFactory,
                               @NonNull IntentProcessorFactory processorFactory,
-                              @NonNull RegisterRequestFactory registerRequestFactory)
+                              @NonNull final RegisterRequestFactory registerRequestFactory)
     {
         this.context = new WeakReference<>(context);
         this.setAdvertiserID(advertiserID);
@@ -365,7 +374,22 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
         //if a new query is needed, send off request.
         if (this.status == MeasurementServiceStatus.QUERYING) {
-            this.register(registerRequestFactory);
+
+            if (this.config.useActiveFingerprinting()) {
+                ActiveFingerprinter fingerprinter = new ActiveFingerprinter(this.context.get(), new ActiveFingerprinter.Callback() {
+                    @Override
+                    public void activeFingerprintComplete(ActiveFingerprinter fingerprinter, Map<String, String> fingerprint) {
+                        register(registerRequestFactory, fingerprint);
+                    }
+                });
+
+                fingerprinter.generateFingerprint();
+            }
+            else {
+                this.register(registerRequestFactory);
+            }
+
+
         }
     }
 
