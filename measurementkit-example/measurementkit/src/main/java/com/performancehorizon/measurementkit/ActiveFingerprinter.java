@@ -1,4 +1,4 @@
-/*package com.performancehorizon.measurementkit;
+package com.performancehorizon.measurementkit;
 
 import android.content.Context;
 import android.os.Handler;
@@ -9,18 +9,16 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by owainbrown on 26/03/15.
 
 public class ActiveFingerprinter {
-    private MobileTrackingActiveFingerprinterCallback callback;
+    private Callback callback;
     private WeakReference<Context> weakContext;
 
-    public interface MobileTrackingActiveFingerprinterCallback {
-        public void activeFingerprintComplete(ActiveFingerprinter fingerprinter, Map<String, Object> fingerprint);
+    public interface Callback {
+        public void activeFingerprintComplete(ActiveFingerprinter fingerprinter, Map<String, String> fingerprint);
     }
 
-    public ActiveFingerprinter(Context context, MobileTrackingActiveFingerprinterCallback callback) {
+    public ActiveFingerprinter(Context context, Callback callback) {
         this.callback = callback;
         this.weakContext = new WeakReference<Context>(context);
     }
@@ -38,7 +36,7 @@ public class ActiveFingerprinter {
                     if (context != null) {
                         WebView webview = new WebView(context);
 
-                        HashMap<String, Object> fingerprint = new HashMap<>();
+                        HashMap<String, String> fingerprint = new HashMap<>();
 
                         fingerprint.put("and_active_ua", webview.getSettings().getUserAgentString());
 
@@ -58,4 +56,3 @@ public class ActiveFingerprinter {
         });
     }
 }
-*/
