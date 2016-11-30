@@ -1,1 +1,1 @@
-include ':measurementkit', ':testapp', ':testappreceiver'
+include ':measurementkit', ':examplepublisherapp', ':exampleadvertiserapplication'

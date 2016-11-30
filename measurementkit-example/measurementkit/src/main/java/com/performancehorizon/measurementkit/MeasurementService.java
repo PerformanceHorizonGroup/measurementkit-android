@@ -31,28 +31,28 @@ import okhttp3.OkHttpClient;
  */
 public class MeasurementService implements TrackingRequestQueueDelegate, RegisterRequestQueueDelegate {
 
-    static class MeasurementStorageFactory
+    protected static class MeasurementStorageFactory
     {
         public MeasurementServiceStorage getMeasurementStorage(Context context) {
             return new MeasurementServiceStorage(context);
         }
     }
 
-    static class ReachabilityFactory
+    protected static class ReachabilityFactory
     {
         public Reachability getReachability(ConnectivityManager manager, ReachabilityCallback callback) {
             return new Reachability(manager, callback);
         }
     }
 
-    static class RegisterRequestFactory
+    protected static class RegisterRequestFactory
     {
         public RegisterRequest getRegisterRequest(Context context, boolean doNotTrackAAID) {
             return new RegisterRequest(context, doNotTrackAAID);
         }
     }
 
-    static class EventRequestFactory
+    protected static class EventRequestFactory
     {
         public EventRequest getEventRequest(Event event, String trackingid) {
             return new EventRequest(event, trackingid);
@@ -63,7 +63,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         }
     }
 
-    static class IntentProcessorFactory
+    protected static class IntentProcessorFactory
     {
         public WebClickIntentProccessor getWebIntentProcessor(Intent intent) {
             return new WebClickIntentProccessor(intent);
@@ -79,14 +79,14 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         }
     }
 
-    static class UriBuilderFactory
+    protected static class UriBuilderFactory
     {
         public MeasurementServiceURIBuilder getTrackingUriBuilder(TrackingURLHelper trackinghelper) {
             return new MeasurementServiceURIBuilder(trackinghelper);
         }
     }
 
-    static class IntentFactory
+    protected static class IntentFactory
     {
         public Intent getIntent(Intent intent) {
             return (Intent)intent.clone();
@@ -97,13 +97,12 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         }
     }
 
-    static class RegistrationProcessorFactory
+    protected static class RegistrationProcessorFactory
     {
         public RegistrationProcessor getRequestProcessor(String result) {
             return new RegistrationProcessor(result);
         }
     }
-
 
     /**
      * Status of the measurementservice;
@@ -298,7 +297,8 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
                 if (MeasurementService.this.storage.getCamRef() != null) {
                     registerrequest.setCamref(MeasurementService.this.storage.getCamRef());
-                } else if (MeasurementService.this.storage.getReferrer() != null) {
+                }
+                else if (MeasurementService.this.storage.getReferrer() != null) {
                     registerrequest.setReferrer(MeasurementService.this.storage.getReferrer());
                 }
 

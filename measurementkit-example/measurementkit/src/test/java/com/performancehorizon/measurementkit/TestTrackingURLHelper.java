@@ -1,6 +1,7 @@
 package com.performancehorizon.measurementkit;
 
 import junit.framework.Assert;
+
 import org.junit.Test;
 
 /**
@@ -14,7 +15,7 @@ public class TestTrackingURLHelper {
     {
         TrackingURLHelper helper = new TrackingURLHelper(true);
 
-        assert(helper.urlStringForTracking().equals("http://m.prf.local"));
+        Assert.assertEquals(helper.urlStringForTracking(), "http://m.prf.local");
     }
 
     @Test
@@ -22,6 +23,6 @@ public class TestTrackingURLHelper {
     {
         TrackingURLHelper helper = new TrackingURLHelper(false);
 
-        assert(helper.urlStringForTracking().equals("https://m.prf.hn"));
+        Assert.assertEquals(helper.urlStringForTracking(), "https://m.prf.hn");
     }
 }

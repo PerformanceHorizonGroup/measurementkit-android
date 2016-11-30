@@ -15,12 +15,12 @@ public class ActiveFingerprinter {
     private WeakReference<Context> weakContext;
 
     public interface Callback {
-        public void activeFingerprintComplete(ActiveFingerprinter fingerprinter, Map<String, String> fingerprint);
+        void activeFingerprintComplete(ActiveFingerprinter fingerprinter, Map<String, String> fingerprint);
     }
 
     public ActiveFingerprinter(Context context, Callback callback) {
         this.callback = callback;
-        this.weakContext = new WeakReference<Context>(context);
+        this.weakContext = new WeakReference<>(context);
     }
 
     public void generateFingerprint(){

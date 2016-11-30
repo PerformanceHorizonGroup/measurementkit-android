@@ -5,12 +5,11 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.0.0-beta2'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
+        classpath 'com.android.tools.build:gradle:2.2.2'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
     }
 }
-
 
 apply plugin: 'com.android.library'
 
@@ -27,7 +26,7 @@ ext {
     siteUrl = 'https://github.com/PerformanceHorizonGroup/measurementkit-android'
     gitUrl = 'https://github.com/PerformanceHorizonGroup/measurementkit-android.git'
 
-    libraryVersion = '0.3.0'
+    libraryVersion = '0.3.3'
 
     developerId = 'owainbrown'
     developerName = 'Owain Brown'
@@ -38,20 +37,19 @@ ext {
     allLicenses = ["MIT"]
 }
 
-
 android {
 
     lintOptions {
         warning 'InvalidPackage'
     }
 
-    compileSdkVersion 23
+    compileSdkVersion 25
     buildToolsVersion '23.0.2'
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 23
+        targetSdkVersion 25
         versionCode 4
-        versionName "0.3.0"
+        versionName '0.3.3'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -73,33 +71,35 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:23.0.0'
-    compile 'com.squareup.okhttp3:okhttp:3.0.1'
-    compile 'com.parse.bolts:bolts-android:1.4.0'
-    compile 'com.android.support:support-annotations:23.0.1'
-    compile 'com.google.android.gms:play-services-ads:8.4.0'
-    compile 'com.android.support:support-annotations:23.1.1'
+    compile 'com.android.support:appcompat-v7:25.0.1'
+    compile 'com.squareup.okhttp3:okhttp:3.4.2'
+    compile 'com.parse.bolts:bolts-tasks:1.4.0'
+    compile 'com.android.support:support-annotations:25.0.1'
+    compile 'com.google.android.gms:play-services-ads:10.0.1'
 
     testCompile 'junit:junit:4.12'
-    testCompile "org.robolectric:robolectric:3.0"
     testCompile 'org.mockito:mockito-core:1.10.19'
 
-    androidTestCompile 'com.android.support.test:runner:0.4.1'
-    androidTestCompile 'com.android.support.test:rules:0.4.1'
-    androidTestCompile 'org.mockito:mockito-core:1.10.19'
-    androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
-    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
+    androidTestCompile "com.crittercism.dexmaker:dexmaker:1.4"
+    androidTestCompile "com.crittercism.dexmaker:dexmaker-dx:1.4"
+    androidTestCompile "com.crittercism.dexmaker:dexmaker-mockito:1.4"
+
+    androidTestCompile 'com.android.support:support-annotations:25.0.1'
+    androidTestCompile 'com.android.support.test:runner:0.5'
+    androidTestCompile 'com.android.support.test:rules:0.5'
+    androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
 }
 
-apply plugin: org.gradle.api.plugins.AndroidMavenPlugin
+apply plugin: 'com.github.dcendents.android-maven'
 
-group = publishedGroupId                               // Maven Group ID for the artifact
+group = publishedGroupId                           // Maven Group ID for the artifact
 
 install {
     repositories.mavenInstaller {
         // This generates POM.xml with proper parameters
         pom {
-            project { packaging 'aar'
+            project {
+                packaging 'aar'
                 groupId publishedGroupId
                 artifactId artifact
 
@@ -183,8 +183,4 @@ install {
             }
         }
     }
-}
-dependencies {
-    compile 'com.android.support:support-annotations:23.1.0'
-    compile 'org.apache.maven:maven-ant-tasks:2.1.3'
 }

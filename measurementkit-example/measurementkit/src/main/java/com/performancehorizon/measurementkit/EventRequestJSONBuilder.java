@@ -105,6 +105,7 @@ public class EventRequestJSONBuilder {
             return eventrequest;
 
         } catch (JSONException jsonexception) {
+
         }
 
         //default return for exceptions or invalid event.

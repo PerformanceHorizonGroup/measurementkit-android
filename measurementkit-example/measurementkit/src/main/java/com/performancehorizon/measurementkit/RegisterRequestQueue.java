@@ -2,6 +2,7 @@ package com.performancehorizon.measurementkit;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import org.json.JSONObject;
 
@@ -67,6 +68,8 @@ public class RegisterRequestQueue implements TrackingRequestQueueDelegate {
         JSONObject requestjson = requestbuilder.setRequest(request).build();
 
         if (requestjson != null) {
+
+            Log.d("LOOK HERE", this.urlHelper.urlStringForTracking() + "/register");
             TrackingRequest transportrequest = factory.getRequest(this.urlHelper.urlStringForTracking() + "/register", requestjson);
 
             this.requests.put(transportrequest, request);

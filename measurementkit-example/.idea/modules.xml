@@ -2,10 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/exampleadvertiserapplication/exampleadvertiserapplication.iml" filepath="$PROJECT_DIR$/exampleadvertiserapplication/exampleadvertiserapplication.iml" />
+      <module fileurl="file://$PROJECT_DIR$/examplepublisherapp/examplepublisherapp.iml" filepath="$PROJECT_DIR$/examplepublisherapp/examplepublisherapp.iml" />
       <module fileurl="file://$PROJECT_DIR$/measurementkit/measurementkit.iml" filepath="$PROJECT_DIR$/measurementkit/measurementkit.iml" />
       <module fileurl="file://$PROJECT_DIR$/measurementkit-example.iml" filepath="$PROJECT_DIR$/measurementkit-example.iml" />
-      <module fileurl="file://$PROJECT_DIR$/testapp/testapp.iml" filepath="$PROJECT_DIR$/testapp/testapp.iml" />
-      <module fileurl="file://$PROJECT_DIR$/testappreceiver/testappreceiver.iml" filepath="$PROJECT_DIR$/testappreceiver/testappreceiver.iml" />
     </modules>
   </component>
 </project>

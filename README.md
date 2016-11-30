@@ -39,8 +39,24 @@ To your app module, add the following.
 	    compile 'com.performancehorizon.android:measurementkit:0.2.3'
 	}
 
+### Implementing - Affiliate
 
-### Implementing
+The standard use case for an affiliate is to open an Intent with a fallback uri.  At present, Intent and uri details must provided by the advertiser.
+	
+	Intent advertiserappintent = new Intent(Action_)
+	
+	MeasurementService.openIntentWithAl
+
+
+Universal links
+
+
+
+
+
+
+
+### Implementing - Advertiser
 
 ####Initialisation
 Import `com.performancehorizon.measurementkit.*` into your main Activity and initialise.
@@ -70,6 +86,8 @@ On install of the App, you can enable the pass back of this referrer value throu
 
 The  SDK will collect the refererer token from the google play store in this case, and ensure accurate attribution.
 
+If the referrer field is already in use in the links provided to publishers, please ensure that any data in it is uri query encoded so that additional data can be appended for use by Measurement Kit.  E.g. `https://play.google.com/store/apps/details?id=com.performancehorizon.exactview&referrer=advertiserdata%3Dreferrerdata%3B`
+
 ####Tracking Events
 You can use events to track a variety of actions within your app. Events are represented as conversions inside the affiliate interface.
 
@@ -90,7 +108,7 @@ The currency parameter is a ISO 4217 currency code. (eg, USD, GBP)
 	
 	MeasurementService.trackingInstance().trackEvent(event);
 	
-### Deep link configuration
+#### Deep link configuration
 	
 ####Deep links
 
@@ -102,3 +120,6 @@ In order to be opened via a deep link, a app would commonly register a splash ac
        <category android:name="android.intent.category.DEFAULT" />
        <category android:name="android.intent.category.BROWSABLE" />
     </intent-filter>
+    
+    
+ ###Advertising Identifier

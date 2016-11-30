@@ -2,6 +2,7 @@ package com.performancehorizon.measurementkit;
 
 import junit.framework.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -15,8 +16,6 @@ import java.util.Map;
  * Created by owainbrown on 06/01/16.
  */
 public class TestEvent {
-
-
 
     @Test
     public void testConstructWithCategory()
@@ -105,7 +104,6 @@ public class TestEvent {
 
         Assert.assertEquals("customerreference", event.getCustomerReference());
     }
-
 
     /*public void testAddSale()
     {
