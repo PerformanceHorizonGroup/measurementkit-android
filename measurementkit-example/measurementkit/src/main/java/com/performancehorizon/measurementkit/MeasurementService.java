@@ -31,6 +31,12 @@ import okhttp3.OkHttpClient;
  */
 public class MeasurementService implements TrackingRequestQueueDelegate, RegisterRequestQueueDelegate {
 
+    protected static class ReferrerTrackerFactory {
+        public ReferrerTracker getReferrerTracker() {
+            return new ReferrerTracker();
+        }
+    }
+
     protected static class MeasurementStorageFactory
     {
         public MeasurementServiceStorage getMeasurementStorage(Context context) {
@@ -47,8 +53,8 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
     protected static class RegisterRequestFactory
     {
-        public RegisterRequest getRegisterRequest(Context context, boolean doNotTrackAAID) {
-            return new RegisterRequest(context, doNotTrackAAID);
+        public RegisterRequest getRegisterRequest(Context context, boolean trackAndroidAdvertisingIdentifier) {
+            return new RegisterRequest(context, trackAndroidAdvertisingIdentifier);
         }
     }
 
@@ -280,7 +286,8 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         Task.callInBackground(new Callable<RegisterRequest>() {
             @Override
             public RegisterRequest call() throws Exception {
-                return therequestfactory.getRegisterRequest(MeasurementService.this.context.get(), MeasurementService.this.config.getDoNoTrackAAID());
+                return therequestfactory.getRegisterRequest(MeasurementService.this.context.get(),
+                        MeasurementService.this.config.getTrackAndroidAdvertisingIdentifier());
                 }
             }).continueWith(new Continuation<RegisterRequest, Void>() {
             @Override
@@ -329,7 +336,9 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                 new MeasurementStorageFactory(),
                 new ReachabilityFactory(),
                 new IntentProcessorFactory(),
-                new RegisterRequestFactory());
+                new RegisterRequestFactory(),
+                new ReferrerTrackerFactory()
+                );
     }
 
 
@@ -337,7 +346,8 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                               @NonNull MeasurementStorageFactory storageFactory,
                               @NonNull ReachabilityFactory reachabilityFactory,
                               @NonNull IntentProcessorFactory processorFactory,
-                              @NonNull final RegisterRequestFactory registerRequestFactory)
+                              @NonNull final RegisterRequestFactory registerRequestFactory,
+                              @NonNull ReferrerTrackerFactory trackerFactory)
     {
         this.context = new WeakReference<>(context);
         this.setAdvertiserID(advertiserID);
@@ -362,8 +372,9 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         }
 
         //now source data from the referrer
-        if (ReferrerTracker.getReferrer() != null) {
-            this.storage.putReferrerQuery(ReferrerTracker.getReferrer());
+        ReferrerTracker tracker = trackerFactory.getReferrerTracker();
+        if (context != null && tracker.getReferrer(context) != null) {
+            this.storage.putReferrerQuery(tracker.getReferrer(context));
         }
 
         //and the opening intent
@@ -388,8 +399,6 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
             else {
                 this.register(registerRequestFactory);
             }
-
-
         }
     }
 
