@@ -25,28 +25,28 @@ public class RegisterRequest {
     @Nullable
     private String referrer;
     @Nullable
-    private String aaid;
+    private String androidAdvertisingIdentifier;
     private boolean installed = false;
 
     public RegisterRequest(@Nullable Context context) {
-        this(context, false);
+        this(context, true);
     }
 
     /**
      * @param context
-     * @param doNotTrackAAID
+     * @param trackAndroidAdvertisingIdentifier
      * @Warning Do not use this constructor on the main thread, this may cause unexpected exceptions.
      */
-    public RegisterRequest(@Nullable Context context, boolean doNotTrackAAID) {
+    public RegisterRequest(@Nullable Context context, boolean trackAndroidAdvertisingIdentifier) {
 
-        if (context != null || doNotTrackAAID) {
+        if (context != null && trackAndroidAdvertisingIdentifier) {
             try {
                 if (Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient") != null) {
 
                     AdvertisingIdClient.Info advertisingidinfo = AdvertisingIdClient.getAdvertisingIdInfo(context);
 
                     //please note, as we're only using the advertising for attribution, we don't consult the limit ad tracking setting.
-                    aaid = advertisingidinfo.getId();
+                    androidAdvertisingIdentifier = advertisingidinfo.getId();
                 }
             } catch (Exception failedaaid) {
                 ServiceLog.debug("Retrieval of advertising identifier failed with exception: " + failedaaid.toString());
@@ -110,7 +110,7 @@ public class RegisterRequest {
     }
 
     @Nullable
-    public String getAaid() {return aaid;};
+    public String getAndroidAdvertisingIdentifier() {return androidAdvertisingIdentifier;};
 
     public boolean getInstalled() {return installed;}
 }

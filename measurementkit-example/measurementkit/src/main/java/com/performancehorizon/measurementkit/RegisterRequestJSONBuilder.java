@@ -49,8 +49,8 @@ public class RegisterRequestJSONBuilder {
                     requestjson.put("google_playstore_referrer", this.request.getReferrer());
                 }
 
-                if (this.request.getAaid() != null) {
-                    requestjson.put("aaid", this.request.getAaid());
+                if (this.request.getAndroidAdvertisingIdentifier() != null) {
+                    requestjson.put("aaid", this.request.getAndroidAdvertisingIdentifier());
                 }
 
                 if (this.request.getInstalled()) {
