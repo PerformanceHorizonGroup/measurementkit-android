@@ -5,27 +5,8 @@ package com.performancehorizon.measurementkit;
  */
 public class MeasurementServiceConfiguration {
     private boolean debugModeActive = false;
-    private boolean doNotTrackAAID = false;
+    private boolean trackAndroidAdvertisingIdentifier = true;
     private boolean useActiveFingerprinting = false;
-
-    /*private String trackingIDQueryKey = null;
-    private String camrefExtraKey = null;
-
-    public String getTrackingIDQueryKey() {
-        return trackingIDQueryKey;
-    }
-
-    public void setTrackingIDQueryKey(String trackingIDQueryKey) {
-        this.trackingIDQueryKey = trackingIDQueryKey;
-    }
-
-    public String getCamrefExtraKey() {
-        return camrefExtraKey;
-    }
-
-    public void setCamrefExtraKey(String camrefExtraKey) {
-        this.camrefExtraKey = camrefExtraKey;
-    }*/
 
     protected boolean useActiveFingerprinting() {
         return this.useActiveFingerprinting;
@@ -35,14 +16,13 @@ public class MeasurementServiceConfiguration {
         this.useActiveFingerprinting = useActiveFingerprinting;
     }
 
-
-    public void setDoNotTrackAAID(boolean doNotTrackAAID)
+    public void setTrackAndroidAdvertisingIdentifier(boolean trackAaid)
     {
-        this.doNotTrackAAID = doNotTrackAAID;
+        this.trackAndroidAdvertisingIdentifier = trackAaid;
     }
 
-    public boolean getDoNoTrackAAID() {
-        return this.doNotTrackAAID;
+    public boolean getTrackAndroidAdvertisingIdentifier() {
+        return this.trackAndroidAdvertisingIdentifier;
     }
 
     public void setDebugMode(boolean debugIsActive) {
