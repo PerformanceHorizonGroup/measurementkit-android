@@ -169,7 +169,7 @@ public class MeasurementServiceStorage {
     }
 
     private boolean hasQuery() {
-        return this.getCamRef() != null || this.getReferrer() != null;
+        return this.getCamRef() != null || (this.getReferrer() != null && this.mobileTrackingID == null);
     }
 
     protected MeasurementServiceStatus status() {
