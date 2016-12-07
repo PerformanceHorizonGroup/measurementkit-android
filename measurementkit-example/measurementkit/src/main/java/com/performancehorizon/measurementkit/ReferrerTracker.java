@@ -8,7 +8,6 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.HashMap;
 import java.util.Map;
 
 
@@ -17,10 +16,8 @@ import java.util.Map;
  */
 public class ReferrerTracker extends BroadcastReceiver{
 
-    private static @Nullable String referrer = null;
-    private static @Nullable Map<String, String> referrerparameters;
-
-    private static final String REFERER_KEY  = "phn_ref";
+    protected static final String REFERER_KEY  = "phn_ref";
+    protected static final String REFERER_PREFS = "phn_mmk_referrer";
 
     public ReferrerTracker() {
         super();
@@ -29,6 +26,8 @@ public class ReferrerTracker extends BroadcastReceiver{
     public void onReceive(Context context, Intent intent) {
 
         try {
+
+            Log.v("Referrer tracker", "PHN referrer tracker running!");
 
             if (intent != null && (intent.getAction().equals("com.android.vending.INSTALL_REFERRER"))) {
                 String encodedreferrer = intent.getStringExtra("referrer");
@@ -42,19 +41,7 @@ public class ReferrerTracker extends BroadcastReceiver{
                     querydecoder.parseQuery(decodedreferrer);
 
                     if (querydecoder.hasParameter(REFERER_KEY)) {
-                        ReferrerTracker.referrer = querydecoder.getValue(REFERER_KEY);
-
-                        //write the original parameter set to referrerparameters
-                        HashMap<String, String> parameters = new HashMap<>();
-
-                        for (String parameterkey : querydecoder.getParameterSet()) {
-                            //if you're not the param, add you to the list.
-                            if (!parameterkey.equals(REFERER_KEY)) {
-                                parameters.put(parameterkey, querydecoder.getValue(parameterkey));
-                            }
-
-                            ReferrerTracker.referrerparameters = parameters;
-                        }
+                        context.getSharedPreferences(REFERER_PREFS, Context.MODE_PRIVATE).edit().putString(REFERER_KEY, querydecoder.getValue(REFERER_KEY)).apply();
                     }
                 }
             }
@@ -63,29 +50,21 @@ public class ReferrerTracker extends BroadcastReceiver{
         }
     }
 
-    protected static void putReferrer(String referrer) {
-        ReferrerTracker.referrer = referrer;
-    }
-
     /**
-     * get the mobile measurement reference encoded in the google play referrer field
-     * @return the mobile measurement reference string
+      * get the mobile measurement reference encoded in the google play referrer field
+      * @return the mobile measurement reference string
      */
     @Nullable
-    public static String getReferrer()
+    public String getReferrer(Context context)
     {
-        return ReferrerTracker.referrer;
+        return context.getSharedPreferences(REFERER_PREFS, Context.MODE_PRIVATE).getString(REFERER_KEY, null);
     }
 
-    /**
-     * get the referrer parameters with the mobile measurement reference value filtered out
-     * @warning please note it is assumed that the already-present referrer parameter are in a form that can be query-encoded.
-     * (So for example a single value referrer will be represented as value = "")
-     * @return Map representing original referrer parameters
-     **/
-    @Nullable
-    public static Map<String, String> getReferrerParameters()
-    {
-        return ReferrerTracker.referrerparameters;
+    protected void clearReferrer(Context context) {
+        context.getSharedPreferences(REFERER_PREFS, Context.MODE_PRIVATE).edit().clear().apply();
+    }
+
+    protected void putReferrer(Context context, String referrer) {
+        context.getSharedPreferences(REFERER_PREFS, Context.MODE_PRIVATE).edit().putString(REFERER_KEY, referrer).apply();
     }
 }
