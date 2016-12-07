@@ -27,7 +27,6 @@ public class RegisterRequestJSONBuilder {
     public JSONObject build() {
 
         if (this.isValid()) {
-
             try {
                 JSONObject requestjson = new JSONObject();
 
@@ -47,7 +46,7 @@ public class RegisterRequestJSONBuilder {
                 }
 
                 if (this.request.getReferrer() != null) {
-                    requestjson.put("google_playstore_referrer", this.request.getCamref());
+                    requestjson.put("google_playstore_referrer", this.request.getReferrer());
                 }
 
                 if (this.request.getAaid() != null) {
