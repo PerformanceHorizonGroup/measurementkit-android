@@ -26,6 +26,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
@@ -54,11 +55,13 @@ public class TestMeasurementService_Setup {
     private MeasurementService.ReachabilityFactory reachabilityFactory;
     private MeasurementService.IntentProcessorFactory processorFactory;
     private MeasurementService.RegisterRequestFactory registerRequestFactory;
+    private MeasurementService.ReferrerTrackerFactory trackerFactory;
 
     private MeasurementServiceStorage storage;
     private Reachability reachability;
     private RegisterRequest registerRequest;
     private Fingerprinter fingerprinter;
+    private ReferrerTracker tracker;
 
     private WebClickIntentProccessor webProcessor;
     private UniversalIntentProcessor universalProcessor;
@@ -88,6 +91,7 @@ public class TestMeasurementService_Setup {
         reachabilityFactory = mock(MeasurementService.ReachabilityFactory.class);
         processorFactory = mock(MeasurementService.IntentProcessorFactory.class);
         registerRequestFactory = mock(MeasurementService.RegisterRequestFactory.class);
+        trackerFactory = mock(MeasurementService.ReferrerTrackerFactory.class);
 
         storage = mock(MeasurementServiceStorage.class);
         reachability = mock(Reachability.class);
@@ -135,11 +139,10 @@ public class TestMeasurementService_Setup {
 
         //fingerprinter hands out a fingerprint
         when(fingerprinter.generateFingerprint()).thenReturn(fingerprint);
-    }
 
-    @After
-    public void afterTest() {
-        ReferrerTracker.putReferrer(null);
+        this.tracker = mock(ReferrerTracker.class);
+        when(trackerFactory.getReferrerTracker()).thenReturn(this.tracker);
+        when(tracker.getReferrer(any(Context.class))).thenReturn(null);
     }
 
     @Test
@@ -181,7 +184,7 @@ public class TestMeasurementService_Setup {
         when(storage.getTrackingID()).thenReturn("tracking_id");
 
         service.initialise(context, new Intent(Intent.ACTION_MAIN), ADVERTISERID, CAMPAIGNID,
-                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory);
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
 
         //Bad practise, I know, but fiddling with additional injection just to test a couple of lines....
         reset(registerQueue, eventQueue);
@@ -203,7 +206,7 @@ public class TestMeasurementService_Setup {
 
         //setup for fingerprint
         service.initialise(null, boringlink, ADVERTISERID, CAMPAIGNID,
-                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory);
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
 
         Assert.assertEquals(service.getAdvertiserID(), ADVERTISERID);
         Assert.assertEquals(service.getCampaignID(), CAMPAIGNID);
@@ -236,7 +239,7 @@ public class TestMeasurementService_Setup {
         when(storage.status()).thenReturn(MeasurementService.MeasurementServiceStatus.QUERYING);
 
         service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
-                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory);
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
 
         verify(reachabilityFactory).getReachability(any(ConnectivityManager.class), any(ReachabilityCallback.class));
 
@@ -263,7 +266,7 @@ public class TestMeasurementService_Setup {
         when(storage.status()).thenReturn(MeasurementService.MeasurementServiceStatus.INACTIVE);
 
         service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
-                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory);
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
 
         verify(reachabilityFactory).getReachability(any(ConnectivityManager.class), any(ReachabilityCallback.class));
 
@@ -286,7 +289,7 @@ public class TestMeasurementService_Setup {
         when(storage.status()).thenReturn(MeasurementService.MeasurementServiceStatus.HALTED);
 
         service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
-                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory);
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
 
         verify(reachabilityFactory).getReachability(any(ConnectivityManager.class), any(ReachabilityCallback.class));
 
@@ -299,7 +302,7 @@ public class TestMeasurementService_Setup {
     }
 
     @Test //NB - this tests the non-registration parts of initialise( with context, but no query)
-     public void testInitialiseSetupWithContextWithStoredActive()
+    public void testInitialiseSetupWithContextWithStoredActive()
     {
         Intent boringlink = new Intent(Intent.ACTION_MAIN);
 
@@ -310,7 +313,34 @@ public class TestMeasurementService_Setup {
         when(storage.getTrackingID()).thenReturn("tracking_id");
 
         service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
-                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory);
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
+
+        verify(reachabilityFactory).getReachability(any(ConnectivityManager.class), any(ReachabilityCallback.class));
+
+        //Should query, no passed setup data.
+        Assert.assertNull(service.getDeepLinkIntent());
+        Assert.assertEquals(service.getStatus(), MeasurementService.MeasurementServiceStatus.ACTIVE);
+        Assert.assertEquals(service.getTrackingID(), "tracking_id");
+
+        //verify the register calls were not made.
+        verify(registerQueue, times(0)).addRegisterRequest(registerRequest);
+    }
+
+    @Test //NB - this tests the non-registration parts of initialise( with context, but no query)
+    public void testInitialiseSetupWithContextWithStoredActiveAndReferrer()
+    {
+        Intent boringlink = new Intent(Intent.ACTION_MAIN);
+        when(this.tracker.getReferrer(any(Context.class))).thenReturn("referrer");
+        when(storage.getReferrer()).thenReturn("referrer");
+
+        //setup for reachability.
+        when(context.getSystemService(Context.CONNECTIVITY_SERVICE)).thenReturn(mock(ConnectivityManager.class));
+        //storage should return active in this case.
+        when(storage.status()).thenReturn(MeasurementService.MeasurementServiceStatus.ACTIVE);
+        when(storage.getTrackingID()).thenReturn("tracking_id");
+
+        service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
 
         verify(reachabilityFactory).getReachability(any(ConnectivityManager.class), any(ReachabilityCallback.class));
 
@@ -327,7 +357,7 @@ public class TestMeasurementService_Setup {
     public void testInitialiseSetupWithContextWithReferrer()
     {
         Intent boringlink = new Intent(Intent.ACTION_MAIN);
-        ReferrerTracker.putReferrer("referrer");
+        when(this.tracker.getReferrer(any(Context.class))).thenReturn("referrer");
         when(storage.getReferrer()).thenReturn("referrer");
 
         //setup for reachability.
@@ -337,7 +367,7 @@ public class TestMeasurementService_Setup {
         when(storage.getTrackingID()).thenReturn("tracking_id");
 
         service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
-                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory);
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
 
         verify(reachabilityFactory).getReachability(any(ConnectivityManager.class), any(ReachabilityCallback.class));
         verify(storage).putReferrerQuery("referrer");
@@ -367,7 +397,7 @@ public class TestMeasurementService_Setup {
         when(storage.status()).thenReturn(MeasurementService.MeasurementServiceStatus.QUERYING);
 
         service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
-                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory);
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
 
         verify(reachabilityFactory).getReachability(any(ConnectivityManager.class), any(ReachabilityCallback.class));
 
@@ -396,7 +426,7 @@ public class TestMeasurementService_Setup {
         when(storage.status()).thenReturn(MeasurementService.MeasurementServiceStatus.QUERYING);
 
         service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
-                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory);
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
 
         verify(reachabilityFactory).getReachability(any(ConnectivityManager.class), any(ReachabilityCallback.class));
 
@@ -409,6 +439,38 @@ public class TestMeasurementService_Setup {
         verify(registerRequest, timeout(1000)).setAdvertiserID(ADVERTISERID);
         verify(registerRequest, timeout(1000)).setFingerprint(fingerprint);
         verify(registerRequest, timeout(1000)).setCamref("camref");
+        verify(registerRequest, never()).setReferrer(anyString());
+
+        verify(registerQueue, timeout(1000)).addRegisterRequest(registerRequest);
+    }
+
+    @Test //NB - this tests the non-registration parts of initialise( with context, but no query)
+    public void testInitialiseSetupWithContextWithStoredCamrefAndReferrer()
+    {
+        Intent boringlink = new Intent(Intent.ACTION_MAIN);
+        when(storage.getCamRef()).thenReturn("camref");
+        when(storage.getReferrer()).thenReturn("referrer");
+
+        //setup for reachability.
+        when(context.getSystemService(Context.CONNECTIVITY_SERVICE)).thenReturn(mock(ConnectivityManager.class));
+        //storage should return active in this case.
+        when(storage.status()).thenReturn(MeasurementService.MeasurementServiceStatus.QUERYING);
+
+        service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
+
+        verify(reachabilityFactory).getReachability(any(ConnectivityManager.class), any(ReachabilityCallback.class));
+
+        //Should query, no passed setup data.
+        Assert.assertNull(service.getDeepLinkIntent());
+        Assert.assertEquals(service.getStatus(), MeasurementService.MeasurementServiceStatus.QUERYING);
+
+        //verify the register calls were made asynchronously.
+        verify(registerRequest, timeout(1000)).setCampaignID(CAMPAIGNID);
+        verify(registerRequest, timeout(1000)).setAdvertiserID(ADVERTISERID);
+        verify(registerRequest, timeout(1000)).setFingerprint(fingerprint);
+        verify(registerRequest, timeout(1000)).setCamref("camref");
+        verify(registerRequest, never()).setReferrer(anyString());
 
         verify(registerQueue, timeout(1000)).addRegisterRequest(registerRequest);
     }
@@ -429,7 +491,7 @@ public class TestMeasurementService_Setup {
         when(storage.status()).thenReturn(MeasurementService.MeasurementServiceStatus.QUERYING);
 
         service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
-                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory);
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
 
         verify(reachabilityFactory).getReachability(any(ConnectivityManager.class), any(ReachabilityCallback.class));
 
@@ -462,7 +524,7 @@ public class TestMeasurementService_Setup {
         when(storage.status()).thenReturn(MeasurementService.MeasurementServiceStatus.QUERYING);
 
         service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
-                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory);
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
 
         verify(reachabilityFactory).getReachability(any(ConnectivityManager.class), any(ReachabilityCallback.class));
 
@@ -495,7 +557,7 @@ public class TestMeasurementService_Setup {
         when(storage.status()).thenReturn(MeasurementService.MeasurementServiceStatus.ACTIVE);
 
         service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
-                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory);
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
 
         verify(reachabilityFactory).getReachability(any(ConnectivityManager.class), any(ReachabilityCallback.class));
 

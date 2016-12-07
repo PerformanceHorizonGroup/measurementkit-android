@@ -1,6 +1,10 @@
 package com.performancehorizon.measurementkit;
 
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+
+import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 
 import junit.framework.Assert;
 
@@ -16,7 +20,6 @@ import java.util.HashMap;
 
 @RunWith(AndroidJUnit4.class)
 public class TestRegisterRequestJSONBuilder {
-
 
     @Test
     public void testInvalidRequestNoAdvertiserID() {
@@ -73,6 +76,12 @@ public class TestRegisterRequestJSONBuilder {
         Assert.assertEquals(registration.getString("campaign_id"), "bob");
         Assert.assertEquals(registration.get("advertiser_id"), "bob");
         Assert.assertTrue(registration.has("fingerprint"));
+
+        //all the other values should not be present
+        Assert.assertNull(registration.opt("install"));
+        Assert.assertNull(registration.optString("camref", null));
+        Assert.assertNull(registration.optString("google_playstore_referrer", null));
+        Assert.assertNull(registration.optString("aaid", null));
     }
 
     @Test
@@ -86,7 +95,6 @@ public class TestRegisterRequestJSONBuilder {
         request.setFingerprint(fingerprint);
         request.setInstalled();
 
-
         RegisterRequestJSONBuilder builder = new RegisterRequestJSONBuilder();
         JSONObject registration = builder.setRequest(request).build();
 
@@ -96,4 +104,85 @@ public class TestRegisterRequestJSONBuilder {
         Assert.assertTrue(registration.getBoolean("install"));
     }
 
+    @Test
+    public void testRequestBuildWithCamref() throws Exception
+    {
+        HashMap<String, String> fingerprint = new HashMap<>();
+
+        RegisterRequest request = new RegisterRequest(null);
+        request.setCampaignID("bob");
+        request.setAdvertiserID("bob");
+        request.setFingerprint(fingerprint);
+        request.setCamref("camref");
+
+        RegisterRequestJSONBuilder builder = new RegisterRequestJSONBuilder();
+        JSONObject registration = builder.setRequest(request).build();
+
+        Assert.assertEquals(registration.getString("campaign_id"), "bob");
+        Assert.assertEquals(registration.get("advertiser_id"), "bob");
+        Assert.assertTrue(registration.has("fingerprint"));
+
+        Assert.assertEquals(registration.getString("camref"), "camref");
+    }
+
+    @Test
+    public void testRequestBuildWithReferrer() throws Exception
+    {
+        HashMap<String, String> fingerprint = new HashMap<>();
+
+        RegisterRequest request = new RegisterRequest(null);
+        request.setCampaignID("bob");
+        request.setAdvertiserID("bob");
+        request.setFingerprint(fingerprint);
+        request.setReferrer("agoogleplayreferrer");
+
+        RegisterRequestJSONBuilder builder = new RegisterRequestJSONBuilder();
+        JSONObject registration = builder.setRequest(request).build();
+
+        Assert.assertEquals(registration.getString("google_playstore_referrer"), "agoogleplayreferrer");
+
+        System.out.print(registration.toString());
+    }
+
+    @Test
+    public void testRequestBuildWithNoAAIDTracking() throws Exception {
+        Context testcontext = InstrumentationRegistry.getContext();
+        //what is the advertising id (tricky to mock out)
+        AdvertisingIdClient.Info aidinfo = AdvertisingIdClient.getAdvertisingIdInfo(testcontext);
+
+        HashMap<String, String> fingerprint = new HashMap<>();
+
+        RegisterRequest request = new RegisterRequest(testcontext, false);
+
+        request.setCampaignID("bob");
+        request.setAdvertiserID("bob");
+        request.setFingerprint(fingerprint);
+
+        RegisterRequestJSONBuilder builder = new RegisterRequestJSONBuilder();
+        JSONObject registration = builder.setRequest(request).build();
+
+        Assert.assertNull(registration.optString("aaid", null));
+    }
+
+
+    @Test
+    public void testRequestBuildWithAAID() throws Exception
+    {
+        Context testcontext = InstrumentationRegistry.getContext();
+        //what is the advertising id (tricky to mock out)
+        AdvertisingIdClient.Info aidinfo = AdvertisingIdClient.getAdvertisingIdInfo(testcontext);
+
+        HashMap<String, String> fingerprint = new HashMap<>();
+
+        RegisterRequest request = new RegisterRequest(testcontext);
+
+        request.setCampaignID("bob");
+        request.setAdvertiserID("bob");
+        request.setFingerprint(fingerprint);
+
+        RegisterRequestJSONBuilder builder = new RegisterRequestJSONBuilder();
+        JSONObject registration = builder.setRequest(request).build();
+
+        Assert.assertEquals(registration.getString("aaid"), aidinfo.getId());
+    }
 }

@@ -176,16 +176,6 @@ public class TestMeasurementServiceStorage {
     }
 
     @Test
-    public void testStatusHalted()
-    {
-        MeasurementServiceStorage storage = new MeasurementServiceStorage(mockContext);
-
-        storage.putHalted(true);
-
-        Assert.assertEquals(storage.status(), MeasurementService.MeasurementServiceStatus.HALTED);
-    }
-
-    @Test
     public void testStatusQueryingWithCamref()
     {
         MeasurementServiceStorage storage = new MeasurementServiceStorage(mockContext);
@@ -208,6 +198,28 @@ public class TestMeasurementServiceStorage {
     }
 
     @Test
+    public void testStatusActiveWithReferrerAndMobileTrackingID() {
+        MeasurementServiceStorage storage = new MeasurementServiceStorage(mockContext);
+
+        storage.putHalted(false);
+        storage.putReferrerQuery("referrer");
+        storage.putTrackingID("trackingid");
+
+        Assert.assertEquals(storage.status(), MeasurementService.MeasurementServiceStatus.ACTIVE);
+    }
+
+    @Test
+    public void testStatusQueryingWithCamrefAndMobileTrackingID() {
+        MeasurementServiceStorage storage = new MeasurementServiceStorage(mockContext);
+
+        storage.putHalted(false);
+        storage.putCamrefQuery("camref");
+        storage.putTrackingID("trackingid");
+
+        Assert.assertEquals(storage.status(), MeasurementService.MeasurementServiceStatus.QUERYING);
+    }
+
+    @Test
     public void testStatusInactive()
     {
         MeasurementServiceStorage storage = new MeasurementServiceStorage(mockContext);
@@ -216,6 +228,19 @@ public class TestMeasurementServiceStorage {
         storage.putTrackingInactive();
 
         Assert.assertEquals(storage.status(), MeasurementService.MeasurementServiceStatus.INACTIVE);
+    }
+
+    @Test
+    public void testStatusHalted() {
+        MeasurementServiceStorage storage = new MeasurementServiceStorage(mockContext);
+
+        storage.putHalted(true);
+        storage.putCamrefQuery("camref");
+        storage.putTrackingID("trackingID");
+        storage.putReferrerQuery("referrer");
+        storage.putTrackingInactive();
+
+        Assert.assertEquals(storage.status(), MeasurementService.MeasurementServiceStatus.HALTED);
     }
 
     @Test
@@ -228,70 +253,4 @@ public class TestMeasurementServiceStorage {
         Assert.assertEquals(storage.status(), MeasurementService.MeasurementServiceStatus.QUERYING);
     }
 
-
-    /**
-     * Created by owainbrown on 22/01/16.
-     */
-
-    @RunWith(AndroidJUnit4.class)
-    public static class TestUniversalIntentProcessor {
-
-        @Test
-        public void testWithSchemeLink() {
-
-            Intent notauniversalintent = new Intent(Intent.ACTION_DEFAULT, Uri.parse("exactview://open"));
-
-            UniversalIntentProcessor intentprocessor = new UniversalIntentProcessor(notauniversalintent, new TrackingURLHelper(false));
-
-            Assert.assertNull(intentprocessor.getCamref());
-        }
-
-        @Test
-        public void testWithWrongDomainLink() {
-
-            Intent notauniversalintent = new Intent(Intent.ACTION_DEFAULT, Uri.parse("http://somewhere/someday"));
-
-            UniversalIntentProcessor intentprocessor = new UniversalIntentProcessor(notauniversalintent, new TrackingURLHelper(false));
-
-            Assert.assertNull(intentprocessor.getCamref());
-        }
-
-        @Test
-        public void testWithUniversal() {
-
-            Intent universalintent = new Intent(Intent.ACTION_DEFAULT, Uri.parse("https://m.prf.hn/click/camref:camref/"));
-
-            UniversalIntentProcessor intentprocessor = new UniversalIntentProcessor(universalintent, new TrackingURLHelper(false));
-
-            Assert.assertEquals(intentprocessor.getCamref(), "camref");
-
-            //no alternate destination is provided.
-            Assert.assertEquals(intentprocessor.getFilteredIntent().getData().toString(), "https://m.prf.hn/click/camref:camref/");
-        }
-
-        @Test
-        public void testWithDestination() {
-
-            Intent universalintent = new Intent(Intent.ACTION_DEFAULT, Uri.parse("https://m.prf.hn/click/camref:camref/destination:http%3A%2F%2Fwww.google.com/"));
-
-            UniversalIntentProcessor intentprocessor = new UniversalIntentProcessor(universalintent, new TrackingURLHelper(false));
-
-            Assert.assertEquals(intentprocessor.getCamref(), "camref");
-
-            //no alternate destination is provided.
-            Assert.assertEquals(intentprocessor.getFilteredIntent().getData().toString(), "http://www.google.com");
-        }
-
-        @Test
-        public void testWithDeepLink() {
-            Intent universalintent = new Intent(Intent.ACTION_DEFAULT, Uri.parse("https://m.prf.hn/click/camref:camref/?deep_link=http%3A%2F%2Fwww.google.com"));
-
-            UniversalIntentProcessor intentprocessor = new UniversalIntentProcessor(universalintent, new TrackingURLHelper(false));
-
-            Assert.assertEquals(intentprocessor.getCamref(), "camref");
-
-            //no alternate destination is provided.
-            Assert.assertEquals(intentprocessor.getFilteredIntent().getData().toString(), "http://www.google.com");
-        }
-    }
 }
