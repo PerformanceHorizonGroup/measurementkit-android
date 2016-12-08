@@ -45,3 +45,5 @@ captures/
 .externalNativeBuild
 
 measurementkit-example/buildoutput.txt
+
+measurementkit-example/fastlane/report.xml
