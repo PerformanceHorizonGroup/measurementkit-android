@@ -47,10 +47,10 @@ public class ActiveFingerprinter {
                     }
                 }
                 catch(Exception exception) {
-                    Log.d(MeasurementService.TrackingConstants.TRACKING_LOG, "Active Fingerprinter - Fingerprint failed with Exception.");
+                    MeasurementServiceLog.e("Active Fingerprinter - Fingerprint failed with Exception.");
                 }
                 catch(VerifyError verificationerror) {
-                    Log.d(MeasurementService.TrackingConstants.TRACKING_LOG, "Active Fingerprinter - Fingerprint failed with Verification error.");
+                    MeasurementServiceLog.e("Active Fingerprinter - Fingerprint failed with Verification error.");
                 }
             }
         });
