@@ -8,9 +8,9 @@ import android.content.Context;
 import java.util.Map;
 
 /**
- * Created by owainbrown on 25/01/16.
+ * Register Request - parameters required for a call to the /register endpoint in the mobile tracking API
  *
- * @Warning - do not construct an instance of this class on the main thread.
+ * Do not construct an instance of this class on the main thread.
  */
 public class RegisterRequest {
 
@@ -35,7 +35,8 @@ public class RegisterRequest {
     /**
      * @param context
      * @param trackAndroidAdvertisingIdentifier
-     * @Warning Do not use this constructor on the main thread, this may cause unexpected exceptions.
+     *
+     * Do not use this constructor on the main thread, this may cause unexpected exceptions.
      */
     public RegisterRequest(@Nullable Context context, boolean trackAndroidAdvertisingIdentifier) {
 

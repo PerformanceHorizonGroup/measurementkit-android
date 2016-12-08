@@ -24,9 +24,8 @@ import okhttp3.OkHttpClient;
 
 /**
  * MeasurementService - interface to Performance Horizon's mobile tracking API.
- *
- * @see {@link Event}
- * @see {@link Sale}
+ *@see com.performancehorizon.measurementkit.Event
+ *@see com.performancehorizon.measurementkit.Sale
  */
 public class MeasurementService implements TrackingRequestQueueDelegate, RegisterRequestQueueDelegate {
 
@@ -188,8 +187,9 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
     }
 
     /**
-     * returns a shared singleton instance of the measurement service with the given configuratedion @link{MeasurementServiceConfig}.
-     * @warning The configuration will be ignored if a shared instance has already been generated.
+     * Returns a shared singleton instance of the measurement service with the given configuratedion @link{MeasurementServiceConfig}.
+     *
+     * The configuration will be ignored if a shared instance has already been generated.
      * @return the shared instance of measurement service.
      */
     public static MeasurementService sharedInstance(MeasurementServiceConfiguration config)
@@ -325,8 +325,8 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
      *
      * @param context the current context
      * @param intent intent that launched the current activity
-     * @param advertiserID Performance Horizon advertiser identifer.  In the PH UI, see Settings -> Advertiser
-     * @param campaignID Performance Horizon campaign identifer.  In the PH UI, see Settings -> Campaign
+     * @param advertiserID Performance Horizon advertiser identifer.  In the PH UI, see Settings, Advertiser
+     * @param campaignID Performance Horizon campaign identifer.  In the PH UI, see Settings, Campaign
      */
     public void initialise(@NonNull Context context, Intent intent, @NonNull String advertiserID,
                            @NonNull String campaignID) {
@@ -533,7 +533,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
      * tracked web equivalent.
      *
      * @param camref the campaign reference that represents the publisher-campaign combination.
-     * @param advertisingid the android advertising id. {@link AdvertisingIdClient}
+     * @param advertisingid the android advertising id.
      * @param destinationuri the destination target for the uri.
      * @param deeplink the deeplink representing the original intent.
      * @return the uri for the measurement kit uri for opening
@@ -591,13 +591,13 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
      * Opens the given intent, with associated PH measurement data.  If the intent opens fails, the given uri is used to construct an alternative Intent,
      * which is then opened (presuming a browser is available).
      *
+     * This method can include calls on a background executor, so the activity launch will be asychronous.
+     *
      * @param context the current contect, on which new activities will be started.
      * @param intent the intent for the application you wish to open.
      * @param camref camref representing the publisher's membership of the campaign.
      * @param uri alternative uri.  An intent will be constructed from this uri, with action: ACTION_VIEW.
-     *
-     * @warning - part of this method will be called on a background executor, so the activity launch will be asychronous.
-     */
+    */
     public static void openIntentWithAlternativeURI(@NonNull Context context,Intent intent,String camref, Uri uri) {
         openIntentWithAlternativeURI(context, intent, camref, uri, new IntentFactory(), false);
     }

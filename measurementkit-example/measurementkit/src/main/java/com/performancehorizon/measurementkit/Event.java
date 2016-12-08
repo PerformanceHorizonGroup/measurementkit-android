@@ -135,7 +135,8 @@ public class Event {
     /**
      * set the customer reference for the event.  An example could be a tranformation of the username used
      * by the user to log in.
-     * @warning please avoid entering personally identifiable information in this field.  A way to avoid this could be to
+     *
+     * Please avoid entering personally identifiable information in this field.  A way to avoid this could be to
      * hash the usernames entered.
      */
     public void setCustomerReference(String customerReference) {
