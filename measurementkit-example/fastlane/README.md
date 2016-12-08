@@ -11,6 +11,11 @@ sudo gem install fastlane
 fastlane android test
 ```
 Runs all the tests
+### android deploy
+```
+fastlane android deploy
+```
+deploy to jcenter
 
 ----
 

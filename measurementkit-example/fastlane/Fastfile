@@ -33,7 +33,7 @@ platform :android do
     gradle(task: ":measurementkit:connectedAndroidTest")
     gradle(task: ":measurementkit:test");
 
-    ensure_git_branch("master")
+    ensure_git_branch(branch: "master")
     ensure_git_status_clean()
 
     gradle(task: ":measurementkit:bintrayUpload")
