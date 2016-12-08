@@ -372,7 +372,9 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         //now source data from the referrer
         ReferrerTracker tracker = trackerFactory.getReferrerTracker();
         if (context != null && tracker.getReferrer(context) != null) {
+            //we're really just switching the referrer from one set of storage to another here.
             this.storage.putReferrerQuery(tracker.getReferrer(context));
+            tracker.clearReferrer(context);
         }
 
         //and the opening intent

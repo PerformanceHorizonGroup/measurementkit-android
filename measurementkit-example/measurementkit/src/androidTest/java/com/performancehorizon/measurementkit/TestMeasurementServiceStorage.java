@@ -205,7 +205,7 @@ public class TestMeasurementServiceStorage {
         storage.putReferrerQuery("referrer");
         storage.putTrackingID("trackingid");
 
-        Assert.assertEquals(storage.status(), MeasurementService.MeasurementServiceStatus.ACTIVE);
+        Assert.assertEquals(storage.status(), MeasurementService.MeasurementServiceStatus.QUERYING);
     }
 
     @Test
