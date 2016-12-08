@@ -8,7 +8,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.Map;
+
 
 
 /**
@@ -26,9 +26,6 @@ public class ReferrerTracker extends BroadcastReceiver{
     public void onReceive(Context context, Intent intent) {
 
         try {
-
-            Log.v("Referrer tracker", "PHN referrer tracker running!");
-
             if (intent != null && (intent.getAction().equals("com.android.vending.INSTALL_REFERRER"))) {
                 String encodedreferrer = intent.getStringExtra("referrer");
 
@@ -41,12 +38,19 @@ public class ReferrerTracker extends BroadcastReceiver{
                     querydecoder.parseQuery(decodedreferrer);
 
                     if (querydecoder.hasParameter(REFERER_KEY)) {
+                        MeasurementServiceLog.d("Referrer Tracker - recovered install referrer");
                         context.getSharedPreferences(REFERER_PREFS, Context.MODE_PRIVATE).edit().putString(REFERER_KEY, querydecoder.getValue(REFERER_KEY)).apply();
                     }
+                    else {
+                        MeasurementServiceLog.d("Referrer Tracker - referrer missing PHN reference parameter");
+                    }
+                }
+                else {
+                    MeasurementServiceLog.d("Referrer Tracker - missing referrer from install broadcast");
                 }
             }
         } catch (UnsupportedEncodingException exception) {
-            Log.d(MeasurementService.TrackingConstants.TRACKING_LOG, "Mobile tracking receiver failed.");
+            MeasurementServiceLog.e("Referrer Tracker Exception");
         }
     }
 

@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-
 import okhttp3.OkHttpClient;
 
 /**
@@ -173,7 +172,6 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
     protected class TrackingConstants
     {
-        protected final static String TRACKING_LOG = "phgmt";
         protected final static String DEEPLINK_KEY = "deep_link";
         protected final static String DEEPLINK_ACTION_KEY = "deeplink_action";
 
@@ -634,7 +632,8 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                     }
                 }
                 catch(Exception advertisingidfail) {
-                    ServiceLog.debug("Retrieval of advertising ID failed with error:  " +  advertisingidfail.toString());
+                    MeasurementServiceLog.d("Retrieval of advertising ID failed with error:  " +  advertisingidfail.toString()
+                            + " while opening intent");
 
                     return null;
                 }
@@ -690,12 +689,11 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
     @Override
     public void requestQueueDidCompleteRequest(TrackingRequestQueue queue, TrackingRequest request, String result) {
-        ServiceLog.debug("Event request completed.");
     }
 
     @Override
     public void requestQueueErrorOnRequest(TrackingRequestQueue queue, TrackingRequest request, Exception error) {
-        ServiceLog.debug("Event request failed with error: " + error.toString());
+        MeasurementServiceLog.d("MeasurementService - Event request failed with error: " + error.toString());
     }
 
     @Override
@@ -763,7 +761,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
     @Override
     public void registerRequestQueueDidError(RegisterRequestQueue queue, RegisterRequest request, Exception error) {
-        ServiceLog.debug("Register queue failure. " + error.toString());
+        MeasurementServiceLog.d("MeasurementService - Register queue failure." + error.toString());
     }
 
     /**

@@ -49,7 +49,7 @@ public class RegisterRequest {
                     androidAdvertisingIdentifier = advertisingidinfo.getId();
                 }
             } catch (Exception failedaaid) {
-                ServiceLog.debug("Retrieval of advertising identifier failed with exception: " + failedaaid.toString());
+                MeasurementServiceLog.d("Register Request - Retrieval of advertising identifier failed with exception: " + failedaaid.toString());
             }
         }
     }

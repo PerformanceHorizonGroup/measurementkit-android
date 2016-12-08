@@ -60,7 +60,7 @@ public class RegisterRequestJSONBuilder {
                 return requestjson;
             }
             catch(Exception jsonexception) {
-                Log.d("PH Measurement Kit", "building registration request failed with exception ");
+                MeasurementServiceLog.e("Register Request Builder - registration ");
             }
         }
 

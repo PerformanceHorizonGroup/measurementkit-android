@@ -49,7 +49,7 @@ public class UniversalIntentProcessor extends TrackedIntentProcessor {
                 this.setFilteredIntent(returnedintent);
             }
             catch (Exception decodingexception) {
-                Log.d("PH MeasurementKit", "Exception decoding alternate destination " + decodingexception.toString());
+                MeasurementServiceLog.e("Universal Intent Processor - decoding alternate destination failed" + decodingexception.toString());
             }
         }
     }

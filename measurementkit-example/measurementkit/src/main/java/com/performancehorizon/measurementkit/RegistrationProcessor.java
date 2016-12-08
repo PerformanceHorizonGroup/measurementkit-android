@@ -5,7 +5,6 @@ import android.net.Uri;
 import org.json.JSONObject;
 
 import java.net.URLDecoder;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Created by owainbrown on 25/01/16.
@@ -43,7 +42,7 @@ public class RegistrationProcessor {
             }
         }
         catch(Exception exception) {
-            ServiceLog.debug("Service failed decoding registration response.");
+            MeasurementServiceLog.e("Registration Processor - decoding registration response failed");
         }
     }
 
