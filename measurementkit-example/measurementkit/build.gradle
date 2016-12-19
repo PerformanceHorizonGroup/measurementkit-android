@@ -5,12 +5,13 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.2'
+        classpath 'com.android.tools.build:gradle:2.2.3'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
     }
 }
 
+apply plugin: 'project-report'
 apply plugin: 'com.android.library'
 
 ext {
@@ -71,7 +72,6 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:25.0.1'
     compile 'com.squareup.okhttp3:okhttp:3.4.2'
     compile 'com.parse.bolts:bolts-tasks:1.4.0'
     compile 'com.android.support:support-annotations:25.0.1'
