@@ -64,7 +64,7 @@ public class TestRequestQueue {
         queue.setDelegate(delegate);
         queue.enqueueRequest(request);
 
-        verify(delegate, timeout(1000).times(3)).requestQueueErrorOnRequest(eq(queue), eq(request), any(Exception.class));
+        verify(delegate, timeout(1000).times(1)).requestQueueErrorOnRequest(eq(queue), eq(request), any(Exception.class));
     }
 
     @Test
@@ -152,6 +152,6 @@ public class TestRequestQueue {
         queue.enqueueRequest(secondrequest);
 
         verify(delegate, timeout(500)).requestQueueDidCompleteRequest(queue,firstrequest,result);
-        verify(delegate, timeout(500).times(3)).requestQueueErrorOnRequest(queue, secondrequest, exception);
+        verify(delegate, timeout(500).times(1)).requestQueueErrorOnRequest(queue, secondrequest, exception);
     }
 }

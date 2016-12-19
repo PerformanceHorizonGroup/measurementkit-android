@@ -16,7 +16,6 @@ public class TrackingRequestQueue {
 
     private boolean requestActive = false;
     private boolean queueIsPaused = false;
-    private int failCount = 0;
 
     private List<TrackingRequest> requestList;
     private WeakReference<TrackingRequestQueueDelegate> delegate;
@@ -34,9 +33,7 @@ public class TrackingRequestQueue {
             this.requestList.add(request);
         }
 
-        if (this.canStartRequest()) {
-            this.makeRequest(requestList.get(0));
-        }
+        this.nextRequest();
     }
 
     private void nextRequest() {
@@ -46,7 +43,7 @@ public class TrackingRequestQueue {
         }
     }
 
-    private void makeSynchronousRequest(TrackingRequest request)
+    /*private void makeSynchronousRequest(TrackingRequest request)
     {
         synchronized(this)
         {
@@ -73,30 +70,28 @@ public class TrackingRequestQueue {
             if (TrackingRequestQueue.this.delegate != null &&  TrackingRequestQueue.this.delegate.get() != null) {
                 TrackingRequestQueue.this.delegate.get().requestQueueDidCompleteRequest(TrackingRequestQueue.this, therequest, result);
             }
-
-            synchronized (TrackingRequestQueue.this) { //as it was succesful, the request can be removed from the queue.
-                int requestedindex = TrackingRequestQueue.this.requestList.indexOf(therequest);
-                TrackingRequestQueue.this.requestList.remove(requestedindex);
-            }
         }
         else
         {
-            TrackingRequestQueue.this.failCount += 1;
-
             if (TrackingRequestQueue.this.delegate != null &&  TrackingRequestQueue.this.delegate.get() != null) {
                 TrackingRequestQueue.this.delegate.get().requestQueueErrorOnRequest(TrackingRequestQueue.this,therequest, taskerror);
             }
         }
 
-        TrackingRequestQueue.this.nextRequest();
+        synchronized (TrackingRequestQueue.this) { //as it was succesful, the request can be removed from the queue.
+            int requestedindex = TrackingRequestQueue.this.requestList.indexOf(therequest);
+            TrackingRequestQueue.this.requestList.remove(requestedindex);
+        }
 
-    }
+        TrackingRequestQueue.this.nextRequest();
+    }*/
 
     private void makeRequest(TrackingRequest request)
     {
         synchronized(this)
         {
             this.setRequestActive(true);
+            this.requestList.remove(request);
         }
 
         final TrackingRequest therequest = request;
@@ -120,16 +115,9 @@ public class TrackingRequestQueue {
                     if (TrackingRequestQueue.this.delegate != null &&  TrackingRequestQueue.this.delegate.get() != null) {
                         TrackingRequestQueue.this.delegate.get().requestQueueDidCompleteRequest(TrackingRequestQueue.this, therequest, task.getResult());
                     }
-
-                    synchronized (TrackingRequestQueue.this) { //as it was succesful, the request can be removed from the queue.
-                        int requestedindex = TrackingRequestQueue.this.requestList.indexOf(therequest);
-                        TrackingRequestQueue.this.requestList.remove(requestedindex);
-                    }
                 }
                 else
                 {
-                    TrackingRequestQueue.this.failCount += 1;
-
                     if (TrackingRequestQueue.this.delegate != null &&  TrackingRequestQueue.this.delegate.get() != null) {
                         TrackingRequestQueue.this.delegate.get().requestQueueErrorOnRequest(TrackingRequestQueue.this,therequest, taskerror);
                     }
@@ -142,10 +130,9 @@ public class TrackingRequestQueue {
         }, Task.UI_THREAD_EXECUTOR);
     }
 
-
     private boolean canStartRequest()
     {
-        if (this.failCount > 2 || queueIsPaused || requestActive) {
+        if (queueIsPaused || requestActive) {
             return false;
         }
         else {
@@ -165,10 +152,7 @@ public class TrackingRequestQueue {
     protected void setQueueIsPaused(boolean queueIsPaused) {
         this.queueIsPaused = queueIsPaused;
 
-        if (!queueIsPaused) {
-            this.failCount = 0;
-            this.nextRequest();
-        }
+        this.nextRequest();
     }
 
     protected void setDelegate(TrackingRequestQueueDelegate delegate)
