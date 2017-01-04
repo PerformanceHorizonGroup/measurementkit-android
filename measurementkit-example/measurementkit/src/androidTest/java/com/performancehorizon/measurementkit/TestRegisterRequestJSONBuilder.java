@@ -144,45 +144,5 @@ public class TestRegisterRequestJSONBuilder {
         System.out.print(registration.toString());
     }
 
-    @Test
-    public void testRequestBuildWithNoAAIDTracking() throws Exception {
-        Context testcontext = InstrumentationRegistry.getContext();
-        //what is the advertising id (tricky to mock out)
-        AdvertisingIdClient.Info aidinfo = AdvertisingIdClient.getAdvertisingIdInfo(testcontext);
 
-        HashMap<String, String> fingerprint = new HashMap<>();
-
-        RegisterRequest request = new RegisterRequest(testcontext, false);
-
-        request.setCampaignID("bob");
-        request.setAdvertiserID("bob");
-        request.setFingerprint(fingerprint);
-
-        RegisterRequestJSONBuilder builder = new RegisterRequestJSONBuilder();
-        JSONObject registration = builder.setRequest(request).build();
-
-        Assert.assertNull(registration.optString("aaid", null));
-    }
-
-
-    @Test
-    public void testRequestBuildWithAAID() throws Exception
-    {
-        Context testcontext = InstrumentationRegistry.getContext();
-        //what is the advertising id (tricky to mock out)
-        AdvertisingIdClient.Info aidinfo = AdvertisingIdClient.getAdvertisingIdInfo(testcontext);
-
-        HashMap<String, String> fingerprint = new HashMap<>();
-
-        RegisterRequest request = new RegisterRequest(testcontext);
-
-        request.setCampaignID("bob");
-        request.setAdvertiserID("bob");
-        request.setFingerprint(fingerprint);
-
-        RegisterRequestJSONBuilder builder = new RegisterRequestJSONBuilder();
-        JSONObject registration = builder.setRequest(request).build();
-
-        Assert.assertEquals(registration.getString("aaid"), aidinfo.getId());
-    }
 }
