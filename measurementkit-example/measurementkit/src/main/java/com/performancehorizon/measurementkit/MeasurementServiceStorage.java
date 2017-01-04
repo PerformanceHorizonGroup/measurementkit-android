@@ -2,8 +2,8 @@ package com.performancehorizon.measurementkit;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 
 import com.performancehorizon.measurementkit.MeasurementService.MeasurementServiceStatus;
 
@@ -15,12 +15,12 @@ import java.lang.ref.WeakReference;
 public class MeasurementServiceStorage {
     private WeakReference<Context> context;
 
-    private @Nullable String mobileTrackingID;
+    private  String mobileTrackingID;
     private boolean isTrackingInactive = false;
     private boolean isTrackingHalted = false;
 
-    private @Nullable String camRef;
-    private @Nullable String googlePlayReferrer;
+    private  String camRef;
+    private  String googlePlayReferrer;
 
     public static void clearPreferences(Context context) {
         SharedPreferences.Editor editor = context.getSharedPreferences(StorageConstants.TRACKING_PREF, Context.MODE_PRIVATE).edit();
@@ -41,7 +41,7 @@ public class MeasurementServiceStorage {
         protected final static String TRACKING_PREF_CAMREF = "com.performancehorizon.com.phnmmk.camref";
     }
 
-    public MeasurementServiceStorage(@NonNull Context context) {
+    public MeasurementServiceStorage( Context context) {
         this.context = new WeakReference<>(context);
     }
 
@@ -156,7 +156,7 @@ public class MeasurementServiceStorage {
         }
     }
 
-    public @Nullable String getTrackingID() {
+    public  String getTrackingID() {
         return this.mobileTrackingID;
     };
 
@@ -190,12 +190,12 @@ public class MeasurementServiceStorage {
         }
     }
 
-    @Nullable
+
     public String getCamRef() {
         return camRef;
     }
 
-    @Nullable
+
     public String getReferrer() {
         return googlePlayReferrer;
     }

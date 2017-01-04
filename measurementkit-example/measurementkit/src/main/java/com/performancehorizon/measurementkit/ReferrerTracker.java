@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.UrlQuerySanitizer;
-import android.support.annotation.Nullable;
+
 import android.util.Log;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -58,7 +58,7 @@ public class ReferrerTracker extends BroadcastReceiver{
       * get the mobile measurement reference encoded in the google play referrer field
       * @return the mobile measurement reference string
      */
-    @Nullable
+
     public String getReferrer(Context context)
     {
         return context.getSharedPreferences(REFERER_PREFS, Context.MODE_PRIVATE).getString(REFERER_KEY, null);

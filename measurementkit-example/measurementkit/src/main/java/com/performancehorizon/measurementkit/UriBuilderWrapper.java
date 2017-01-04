@@ -1,15 +1,15 @@
 package com.performancehorizon.measurementkit;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
+
 
 /**
  * Created by owainbrown on 03/02/16.
  */
 public class UriBuilderWrapper {
-    @NonNull private Uri.Builder builder;
+     private Uri.Builder builder;
 
-    public UriBuilderWrapper(@NonNull Uri.Builder builder) {
+    public UriBuilderWrapper( Uri.Builder builder) {
         this.builder = builder;
     }
 

@@ -1,7 +1,7 @@
 package com.performancehorizon.measurementkit;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 import android.util.Log;
 
 import org.json.JSONObject;
@@ -16,26 +16,26 @@ import java.util.Map;
  */
 public class RegisterRequestQueue implements TrackingRequestQueueDelegate {
 
-    @NonNull private TrackingRequestFactory factory;
-    @NonNull private TrackingRequestQueue requestQueue;
-    @NonNull private TrackingURLHelper urlHelper;
-    @NonNull private Map<TrackingRequest, RegisterRequest> requests;
-    @NonNull private RegisterRequestJSONFactory jsonFactory;
+     private TrackingRequestFactory factory;
+     private TrackingRequestQueue requestQueue;
+     private TrackingURLHelper urlHelper;
+     private Map<TrackingRequest, RegisterRequest> requests;
+     private RegisterRequestJSONFactory jsonFactory;
 
-    @Nullable private WeakReference<RegisterRequestQueueDelegate> delegate;
+     private WeakReference<RegisterRequestQueueDelegate> delegate;
 
     protected static class RegisterRequestJSONFactory {
 
-        @NonNull
+
         public RegisterRequestJSONBuilder jsonBuilder() {
             return new RegisterRequestJSONBuilder();
         }
     }
 
-    public RegisterRequestQueue(@NonNull TrackingRequestQueue queue,
-                             @NonNull TrackingRequestFactory factory,
-                             @NonNull TrackingURLHelper urlHelper,
-                                @NonNull RegisterRequestJSONFactory jsonfactory) {
+    public RegisterRequestQueue( TrackingRequestQueue queue,
+                              TrackingRequestFactory factory,
+                              TrackingURLHelper urlHelper,
+                                 RegisterRequestJSONFactory jsonfactory) {
 
         this.requestQueue = queue;
         this.requestQueue.setDelegate(this);
@@ -45,9 +45,9 @@ public class RegisterRequestQueue implements TrackingRequestQueueDelegate {
         this.jsonFactory = jsonfactory;
     }
 
-    public RegisterRequestQueue(@NonNull TrackingRequestQueue queue,
-                                @NonNull TrackingRequestFactory factory,
-                                @NonNull TrackingURLHelper urlHelper) {
+    public RegisterRequestQueue( TrackingRequestQueue queue,
+                                 TrackingRequestFactory factory,
+                                 TrackingURLHelper urlHelper) {
 
         this(queue, factory, urlHelper, new RegisterRequestJSONFactory());
     }
@@ -80,7 +80,7 @@ public class RegisterRequestQueue implements TrackingRequestQueueDelegate {
     }
 
     @Override
-    public void requestQueueDidCompleteRequest(TrackingRequestQueue queue, @Nullable TrackingRequest request, String result) {
+    public void requestQueueDidCompleteRequest(TrackingRequestQueue queue,  TrackingRequest request, String result) {
         if (this.delegate != null && this.delegate.get() != null) {
 
             RegisterRequest registerrequest = this.requests.get(request);

@@ -1,6 +1,6 @@
 package com.performancehorizon.measurementkit;
 
-import android.support.annotation.NonNull;
+
 import android.util.Log;
 
 /**
@@ -10,11 +10,11 @@ public class MeasurementServiceLog {
 
     protected final static String TRACKING_LOG = "PHN_MT";
 
-    public static void d(@NonNull String log) {
+    public static void d( String log) {
         Log.d(TRACKING_LOG, log);
     }
 
-    public static void e(@NonNull String log) {
+    public static void e( String log) {
         Log.e(TRACKING_LOG, log);
     }
 }

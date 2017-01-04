@@ -1,7 +1,6 @@
 package com.performancehorizon.measurementkit;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
 
 import org.json.JSONObject;
 
@@ -19,19 +18,19 @@ public class EventRequestQueue {
         }
     }
 
-    @NonNull private List<EventRequest> incompleteEventRequests;
-    @NonNull private TrackingRequestFactory factory;
-    @NonNull private TrackingRequestQueue requestQueue;
-    @NonNull private TrackingURLHelper urlHelper;
-    @NonNull private EventRequestJSONFactory jsonFactory;
+     private List<EventRequest> incompleteEventRequests;
+     private TrackingRequestFactory factory;
+     private TrackingRequestQueue requestQueue;
+     private TrackingURLHelper urlHelper;
+     private EventRequestJSONFactory jsonFactory;
 
-    @Nullable private String campaignID;
+     private String campaignID;
 
 
-    protected EventRequestQueue(@NonNull TrackingRequestQueue queue,
-                             @NonNull TrackingRequestFactory factory,
-                             @NonNull TrackingURLHelper urlHelper,
-                             @NonNull EventRequestJSONFactory jsonFactory) {
+    protected EventRequestQueue( TrackingRequestQueue queue,
+                              TrackingRequestFactory factory,
+                              TrackingURLHelper urlHelper,
+                              EventRequestJSONFactory jsonFactory) {
         this.requestQueue = queue;
         this.factory = factory;
         this.urlHelper = urlHelper;
@@ -40,9 +39,9 @@ public class EventRequestQueue {
         this.incompleteEventRequests = new ArrayList<>();
     }
 
-    public EventRequestQueue(@NonNull TrackingRequestQueue queue,
-                             @NonNull TrackingRequestFactory factory,
-                             @NonNull TrackingURLHelper urlHelper) {
+    public EventRequestQueue( TrackingRequestQueue queue,
+                              TrackingRequestFactory factory,
+                              TrackingURLHelper urlHelper) {
         this(queue, factory, urlHelper, new EventRequestJSONFactory());
     }
 
@@ -79,7 +78,7 @@ public class EventRequestQueue {
         this.enqueueIncompletes();
     }
 
-    public void setTrackingIDForIncompleteRequests(@NonNull String trackingID) {
+    public void setTrackingIDForIncompleteRequests( String trackingID) {
         for (EventRequest request : this.incompleteEventRequests) {
             request.setTrackingID(trackingID);
         }

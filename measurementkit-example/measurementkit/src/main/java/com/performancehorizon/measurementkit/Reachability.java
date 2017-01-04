@@ -4,7 +4,7 @@ import android.annotation.TargetApi;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
-import android.support.annotation.Nullable;
+
 
 /**
  * Created by owainbrown on 18/03/15.
@@ -14,11 +14,11 @@ public class Reachability {
 
     private ReachabilityCallback callback;
 
-    @Nullable
+
     private ConnectivityManager connectivityManager;
 
     @TargetApi(21)
-    public Reachability(@Nullable ConnectivityManager connectivity, final ReachabilityCallback callback)
+    public Reachability( ConnectivityManager connectivity, final ReachabilityCallback callback)
     {
         this.callback= callback;
         this.connectivityManager = connectivity;

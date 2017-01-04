@@ -1,11 +1,5 @@
 package com.performancehorizon.measurementkit;
 
-import android.support.annotation.Nullable;
-
-import com.performancehorizon.measurementkit.Sale;
-
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,13 +18,13 @@ public class Event {
     private Map<String, String> meta;
     private Date date;
 
-    private @Nullable String conversionReference;
-    private @Nullable String customerReference;
-    private @Nullable String category;
-    private @Nullable List<Sale> sales;
-    private @Nullable String salesCurrency;
-    private @Nullable String voucher;
-    private @Nullable String country;
+    private String conversionReference;
+    private String customerReference;
+    private String category;
+    private List<Sale> sales;
+    private String salesCurrency;
+    private String voucher;
+    private String country;
 
     private Event()
     {
@@ -74,7 +68,7 @@ public class Event {
         return this.meta;
     }
 
-    public @Nullable String getCategory() {
+    public String getCategory() {
         return this.category;
     }
 
@@ -100,7 +94,7 @@ public class Event {
         this.sales = sales;
     }
 
-    protected @Nullable String getSalesCurrency() {
+    protected String getSalesCurrency() {
         return this.salesCurrency;
     }
 
@@ -112,7 +106,7 @@ public class Event {
     /**
      * get the conversion reference for the event.  An example could be the order id corresponding to the sales.
      */
-    public @Nullable String getConversionReference() {
+    public String getConversionReference() {
         return conversionReference;
     }
 
@@ -128,7 +122,7 @@ public class Event {
      * get the customer reference for the event.  An example could be a tranformation of the username used
      * by the user to log in.
      */
-    public @Nullable String getCustomerReference() {
+    public String getCustomerReference() {
         return this.customerReference;
     }
 
@@ -159,7 +153,7 @@ public class Event {
      * get the voucher code used with the event
      * @return Voucher code used in event (may be null)
      */
-    protected @Nullable String getVoucher() {
+    protected String getVoucher() {
         return voucher;
     }
 
@@ -172,7 +166,7 @@ public class Event {
         this.voucher = voucher;
     }
 
-    protected @Nullable String getCountry() {
+    protected String getCountry() {
         return country;
     }
 

@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 
 /**
  * Created by owainbrown on 19/01/16.
@@ -20,18 +20,18 @@ public class MeasurementServiceURIBuilder {
         }
     }
 
-    @NonNull private TrackingURLHelper helper;
-    @NonNull private UriBuilderFactory factory;
+     private TrackingURLHelper helper;
+     private UriBuilderFactory factory;
 
-    @Nullable private String camref;
-    @Nullable private Uri destination;
-    @Nullable private Uri deeplink;
+     private String camref;
+     private Uri destination;
+     private Uri deeplink;
 
-    @NonNull private Map<String, String> aliases;
+     private Map<String, String> aliases;
 
     private boolean skipDeepLink = false;
 
-    protected MeasurementServiceURIBuilder(@NonNull TrackingURLHelper helper, @NonNull UriBuilderFactory factory) {
+    protected MeasurementServiceURIBuilder( TrackingURLHelper helper,  UriBuilderFactory factory) {
         this.helper = helper;
         this.aliases = new HashMap<>();
         this.factory = factory;
@@ -80,12 +80,12 @@ public class MeasurementServiceURIBuilder {
         }
     }
 
-    public MeasurementServiceURIBuilder setCamref(@NonNull String camref) {
+    public MeasurementServiceURIBuilder setCamref( String camref) {
         this.camref = camref;
         return this;
     }
 
-    public MeasurementServiceURIBuilder setDestination(@NonNull Uri destination) {
+    public MeasurementServiceURIBuilder setDestination( Uri destination) {
         this.destination = destination;
         return this;
     }

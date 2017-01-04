@@ -1,7 +1,7 @@
 package com.performancehorizon.measurementkit;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 import android.util.Log;
 
 import org.json.JSONObject;
@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class RegisterRequestJSONBuilder {
 
-    @NonNull
+
     private RegisterRequest request;
 
     private boolean isValid() {
@@ -23,7 +23,7 @@ public class RegisterRequestJSONBuilder {
 
     }
 
-    @Nullable
+
     public JSONObject build() {
 
         if (this.isValid()) {
@@ -60,14 +60,14 @@ public class RegisterRequestJSONBuilder {
                 return requestjson;
             }
             catch(Exception jsonexception) {
-                MeasurementServiceLog.e("Register Request Builder - registration ");
+                MeasurementServiceLog.e("Register Request Builder - registration");
             }
         }
 
         return null;
     }
 
-    public RegisterRequestJSONBuilder setRequest(@NonNull RegisterRequest request) {
+    public RegisterRequestJSONBuilder setRequest( RegisterRequest request) {
         this.request = request;
         return this;
     }

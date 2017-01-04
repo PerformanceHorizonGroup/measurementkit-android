@@ -5,8 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 import android.support.v4.content.LocalBroadcastManager;
 
 import bolts.Continuation;
@@ -143,15 +143,15 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
 
     //service configuration
-    @NonNull private  MeasurementServiceConfiguration config;
-    @NonNull private  MeasurementServiceStatus status = MeasurementServiceStatus.AWAITING_INITIALISE;
+     private  MeasurementServiceConfiguration config;
+     private  MeasurementServiceStatus status = MeasurementServiceStatus.AWAITING_INITIALISE;
 
     //callback
-    @Nullable private MeasurementServiceCallback callback;
+     private MeasurementServiceCallback callback;
 
     //setup variables.
-    @NonNull private String campaignID;
-    @NonNull private String advertiserID;
+     private String campaignID;
+     private String advertiserID;
 
     //dependencies.
     private EventRequestQueue eventQueue;
@@ -162,11 +162,11 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
     private FingerprinterFactory fingerprinterfactory;
 
-    @Nullable private WeakReference<Context> context;
-    @Nullable private MeasurementServiceStorage storage;
+     private WeakReference<Context> context;
+     private MeasurementServiceStorage storage;
 
-    @Nullable private Uri referrer;
-    @Nullable private Intent deepLinkIntent;
+     private Uri referrer;
+     private Intent deepLinkIntent;
     private boolean isInstalled =  false;
 
     protected class TrackingConstants
@@ -328,8 +328,8 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
      * @param advertiserID Performance Horizon advertiser identifer.  In the PH UI, see Settings, Advertiser
      * @param campaignID Performance Horizon campaign identifer.  In the PH UI, see Settings, Campaign
      */
-    public void initialise(@NonNull Context context, Intent intent, @NonNull String advertiserID,
-                           @NonNull String campaignID) {
+    public void initialise( Context context, Intent intent,  String advertiserID,
+                            String campaignID) {
         this.initialise(context, intent, advertiserID, campaignID,
                 new MeasurementStorageFactory(),
                 new ReachabilityFactory(),
@@ -340,12 +340,12 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
     }
 
 
-    protected void initialise(Context context, Intent intent, @NonNull String advertiserID, @NonNull String campaignID,
-                              @NonNull MeasurementStorageFactory storageFactory,
-                              @NonNull ReachabilityFactory reachabilityFactory,
-                              @NonNull IntentProcessorFactory processorFactory,
-                              @NonNull final RegisterRequestFactory registerRequestFactory,
-                              @NonNull ReferrerTrackerFactory trackerFactory)
+    protected void initialise(Context context, Intent intent,  String advertiserID,  String campaignID,
+                               MeasurementStorageFactory storageFactory,
+                               ReachabilityFactory reachabilityFactory,
+                               IntentProcessorFactory processorFactory,
+                               final RegisterRequestFactory registerRequestFactory,
+                               ReferrerTrackerFactory trackerFactory)
     {
         this.context = new WeakReference<>(context);
         this.setAdvertiserID(advertiserID);
@@ -541,16 +541,16 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
      * @return the uri for the measurement kit uri for opening
      *
      */
-    public static Uri measurementServiceURI(String camref,@Nullable String advertisingid, Uri destinationuri, Uri deeplink) {
+    public static Uri measurementServiceURI(String camref, String advertisingid, Uri destinationuri, Uri deeplink) {
         return MeasurementService.measurementServiceURI(camref, advertisingid, destinationuri, deeplink, false);
     }
 
-    static Uri measurementServiceURI(String camref,@Nullable String advertisingid, Uri destinationuri, Uri deeplink, boolean isDebug) {
+    static Uri measurementServiceURI(String camref, String advertisingid, Uri destinationuri, Uri deeplink, boolean isDebug) {
         return MeasurementService.measurementServiceURI(camref, advertisingid, destinationuri, deeplink, isDebug, new UriBuilderFactory());
     }
 
-    static Uri measurementServiceURI(@NonNull String camref,@Nullable String advertisingid,
-                                            @NonNull Uri destinationuri, @Nullable Uri deeplink,
+    static Uri measurementServiceURI( String camref, String advertisingid,
+                                             Uri destinationuri,  Uri deeplink,
                                             boolean debuguri, UriBuilderFactory builderfactory) {
 
         TrackingURLHelper trackinghelper = new TrackingURLHelper(debuguri);
@@ -600,11 +600,11 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
      * @param camref camref representing the publisher's membership of the campaign.
      * @param uri alternative uri.  An intent will be constructed from this uri, with action: ACTION_VIEW.
     */
-    public static void openIntentWithAlternativeURI(@NonNull Context context,Intent intent,String camref, Uri uri) {
+    public static void openIntentWithAlternativeURI( Context context,Intent intent,String camref, Uri uri) {
         openIntentWithAlternativeURI(context, intent, camref, uri, new IntentFactory(), false);
     }
 
-    static void debugOpenIntentWithAlternativeURI(@NonNull Context context,Intent intent,String camref, Uri uri) {
+    static void debugOpenIntentWithAlternativeURI( Context context,Intent intent,String camref, Uri uri) {
         openIntentWithAlternativeURI(context, intent, camref, uri, new IntentFactory(), true);
     }
 
@@ -773,7 +773,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
      * Please note that at present the original action is not recorded.  A default action of ACTION_VIEW is added.
      * @return the intent that represents the deep link.
      */
-    @Nullable
+
     public Intent getDeepLinkIntent() {
         return deepLinkIntent;
     }
@@ -784,7 +784,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
      * Please note that this uri is only captured in a web-app scenario at present.
      * @return the referrer uri
      */
-    @Nullable
+
     public Uri getReferrer() {
         return referrer;
     }
@@ -795,7 +795,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
      * or a registration token passed through the referrer field in google play.
      * @return the tracking identifier for the last registration on this device
      */
-    @Nullable
+
     public String getTrackingID() {
         //guard for pre-init.
 
@@ -811,7 +811,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
      * Get the configuration used by the measurement service.
      * @return the current configuration in use.
      */
-    @NonNull
+
     public MeasurementServiceConfiguration getConfiguration() {
         return this.config;
     }
@@ -822,7 +822,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
      *
      * @see MeasurementService.MeasurementServiceStatus
      */
-    @NonNull
+
     public MeasurementServiceStatus getStatus() {
         return this.status;
     }

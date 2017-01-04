@@ -1,7 +1,7 @@
 package com.performancehorizon.measurementkit;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -83,7 +83,7 @@ public class Sale {
      * get the SKU of the sale
      * @return SKU of the product sold (may be null)
      */
-    protected @Nullable String getSKU() {
+    protected  String getSKU() {
         return this.sku;
     }
 
@@ -99,7 +99,7 @@ public class Sale {
      * get the quantity of products sold
      * @return quantity sold (may be null)
      */
-    protected @Nullable Integer getQuantity() {
+    protected  Integer getQuantity() {
         return this.quantity;
     }
 
@@ -108,7 +108,7 @@ public class Sale {
      * @return commission amount (may be null, in which case the commision amount will
      * be calculated according to campaign defaults)
      */
-    protected @Nullable BigDecimal getCommission() {
+    protected  BigDecimal getCommission() {
         return commission;
     }
 
@@ -125,7 +125,7 @@ public class Sale {
      * @return override amount (may be null, in which case the override amount will be
      * calculated according to campaing defaults)
      */
-    protected @Nullable BigDecimal getOverride() {
+    protected  BigDecimal getOverride() {
         return this.override;
     }
 
@@ -142,7 +142,7 @@ public class Sale {
      * get the voucher code used with the sale
      * @return Voucher code used in sale (may be null)
      */
-    protected @Nullable String getVoucher() {
+    protected  String getVoucher() {
         return voucher;
     }
 
@@ -154,7 +154,7 @@ public class Sale {
         this.voucher = voucher;
     }
 
-    protected @Nullable String getCountry() {
+    protected  String getCountry() {
         return country;
     }
 
@@ -177,7 +177,7 @@ public class Sale {
         this.saleMeta.put(key, value);
     }
 
-    protected @NonNull Map<String, String> getMetaItems() {
+    protected  Map<String, String> getMetaItems() {
         return this.saleMeta;
     }
 }

@@ -2,7 +2,7 @@ package com.performancehorizon.measurementkit;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.support.annotation.NonNull;
+
 
 /**
  * Created by owainbrown on 13/01/16.
@@ -17,7 +17,7 @@ public class WebClickIntentProccessor extends TrackedIntentProcessor {
         this(intent, TRACKING_ID_QUERY_PARAM);
     }
 
-    protected WebClickIntentProccessor(@NonNull Intent intent, String queryKey)
+    protected WebClickIntentProccessor( Intent intent, String queryKey)
     {
         Uri intenturi = intent.getData();
 

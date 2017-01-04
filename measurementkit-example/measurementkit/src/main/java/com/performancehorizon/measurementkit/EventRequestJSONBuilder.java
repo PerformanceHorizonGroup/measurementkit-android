@@ -1,7 +1,5 @@
 package com.performancehorizon.measurementkit;
 
-import android.support.annotation.Nullable;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,7 +50,7 @@ public class EventRequestJSONBuilder {
                 this.mobileTrackingID != null;
     }
 
-    public @Nullable JSONObject build() {
+    public JSONObject build() {
         if (this.isValid()) try {
             JSONObject eventrequest = new JSONObject();
 
