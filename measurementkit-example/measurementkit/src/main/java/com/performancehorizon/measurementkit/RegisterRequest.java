@@ -1,8 +1,5 @@
 package com.performancehorizon.measurementkit;
 
-import android.support.annotation.Nullable;
-
-import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import android.content.Context;
 
 import java.util.Map;
@@ -14,21 +11,15 @@ import java.util.Map;
  */
 public class RegisterRequest {
 
-    @Nullable
     private String advertiserID;
-    @Nullable
     private String campaignID;
-    @Nullable
     private Map<String, String> fingerprint;
-    @Nullable
     private String camref;
-    @Nullable
     private String referrer;
-    @Nullable
     private String androidAdvertisingIdentifier;
     private boolean installed = false;
 
-    public RegisterRequest(@Nullable Context context) {
+    public RegisterRequest( Context context) {
         this(context, true);
     }
 
@@ -38,16 +29,25 @@ public class RegisterRequest {
      *
      * Do not use this constructor on the main thread, this may cause unexpected exceptions.
      */
-    public RegisterRequest(@Nullable Context context, boolean trackAndroidAdvertisingIdentifier) {
+    public RegisterRequest( Context context, boolean trackAndroidAdvertisingIdentifier) {
 
         if (context != null && trackAndroidAdvertisingIdentifier) {
             try {
+
+                // to remove the need for a compile-time dependency, which is problematic, we'll access the google play services-ads
+                // advertising identifier
+
                 if (Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient") != null) {
 
-                    AdvertisingIdClient.Info advertisingidinfo = AdvertisingIdClient.getAdvertisingIdInfo(context);
+                    // ad-id class
+                    Class<?> AdvertisingIdClientClass = Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient");
+
+                    // instance of AdvertisingIdClient.info
+                    Object advertisingidinfo = AdvertisingIdClientClass.getMethod("getAdvertisingIdInfo", Context.class).invoke(null, context);
+
+                    androidAdvertisingIdentifier = (String) advertisingidinfo.getClass().getMethod("getId").invoke(advertisingidinfo);
 
                     //please note, as we're only using the advertising for attribution, we don't consult the limit ad tracking setting.
-                    androidAdvertisingIdentifier = advertisingidinfo.getId();
                 }
             } catch (Exception failedaaid) {
                 MeasurementServiceLog.d("Register Request - Retrieval of advertising identifier failed with exception: " + failedaaid.toString());
@@ -55,27 +55,27 @@ public class RegisterRequest {
         }
     }
 
-    public RegisterRequest setAdvertiserID(@Nullable String advertiserID) {
+    public RegisterRequest setAdvertiserID( String advertiserID) {
         this.advertiserID = advertiserID;
         return this;
     }
 
-    public RegisterRequest setCampaignID(@Nullable String campaignID) {
+    public RegisterRequest setCampaignID( String campaignID) {
         this.campaignID = campaignID;
         return this;
     }
 
-    public RegisterRequest setFingerprint(@Nullable Map<String, String> fingerprint) {
+    public RegisterRequest setFingerprint( Map<String, String> fingerprint) {
         this.fingerprint = fingerprint;
         return this;
     }
 
-    public RegisterRequest setCamref(@Nullable String camref) {
+    public RegisterRequest setCamref( String camref) {
         this.camref = camref;
         return this;
     }
 
-    public RegisterRequest setReferrer(@Nullable String referrer) {
+    public RegisterRequest setReferrer( String referrer) {
         this.referrer = referrer;
         return this;
     }
@@ -85,32 +85,32 @@ public class RegisterRequest {
         return this;
     }
 
-    @Nullable
+
     public String getAdvertiserID() {
         return advertiserID;
     }
 
-    @Nullable
+
     public String getCampaignID() {
         return campaignID;
     }
 
-    @Nullable
+
     public Map<String, String> getFingerprint() {
         return fingerprint;
     }
 
-    @Nullable
+
     public String getCamref() {
         return camref;
     }
 
-    @Nullable
+
     public String getReferrer() {
         return referrer;
     }
 
-    @Nullable
+
     public String getAndroidAdvertisingIdentifier() {return androidAdvertisingIdentifier;};
 
     public boolean getInstalled() {return installed;}
