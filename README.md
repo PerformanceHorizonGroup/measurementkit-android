@@ -1,6 +1,6 @@
 ![PHG Icon](http://performancehorizon.com/img/logo-on-white.svg)
 
-# Measurement Kit Android SDK
+# Measurement Kit Android SDK (BETA)
 
 ## Overview
 
@@ -41,7 +41,7 @@ To your app module, add the following.
 	    *
 	    * All other dependencies....
 	    */
-	    compile 'com.performancehorizon.android:measurementkit:0.3.5'
+	    compile 'com.performancehorizon.android:measurementkit:0.3.7'
 	}
 
 ### Implementing - Advertiser
