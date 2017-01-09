@@ -1,5 +1,6 @@
 package com.performancehorizon.measurementkit;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -27,7 +28,7 @@ public class TestMeasurementServiceStorage {
     SharedPreferences mockPreferences;
     SharedPreferences.Editor mockPreferencesEditor;
 
-    @Before
+    @Before @SuppressLint("CommitPrefEdits") //because we're not really editing the preferences, it's a mock.
     public void initialise() {
 
         mockContext = mock(Context.class);
