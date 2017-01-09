@@ -1,10 +1,6 @@
 package com.performancehorizon.measurementkit;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-
-import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 
 import junit.framework.Assert;
 
