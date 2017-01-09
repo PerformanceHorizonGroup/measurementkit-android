@@ -3,7 +3,6 @@ package com.performancehorizon.measurementkit;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.webkit.WebView;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
