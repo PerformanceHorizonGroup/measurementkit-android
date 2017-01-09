@@ -40,12 +40,12 @@ public class RegisterRequest {
                 if (Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient") != null) {
 
                     // ad-id class
-                    Class<?> AdvertisingIdClientClass = Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient");
+                    Class<?> advertisingidclientclass = Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient");
 
                     // instance of AdvertisingIdClient.info
-                    Object advertisingidinfo = AdvertisingIdClientClass.getMethod("getAdvertisingIdInfo", Context.class).invoke(null, context);
+                    Object advertisingidinfo = advertisingidclientclass.getMethod("getAdvertisingIdInfo", Context.class).invoke(null, context);
 
-                    androidAdvertisingIdentifier = (String) advertisingidinfo.getClass().getMethod("getId").invoke(advertisingidinfo);
+                    this.androidAdvertisingIdentifier = (String) advertisingidinfo.getClass().getMethod("getId").invoke(advertisingidinfo);
 
                     //please note, as we're only using the advertising for attribution, we don't consult the limit ad tracking setting.
                 }
