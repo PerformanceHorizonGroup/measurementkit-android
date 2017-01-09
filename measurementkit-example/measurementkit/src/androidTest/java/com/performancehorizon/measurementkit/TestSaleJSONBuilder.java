@@ -32,7 +32,7 @@ public class TestSaleJSONBuilder {
     @Test //Test sale json from the default constructor
     public void testSaleWithSKUAndQuantity() throws Exception {
 
-        Sale sale = new Sale("product", new BigDecimal("0"), "sku", new Integer(1));
+        Sale sale = new Sale("product", new BigDecimal("0"), "sku", Integer.valueOf(1));
         SaleJSONBuilder salebuilder = new SaleJSONBuilder(sale);
 
         JSONObject salejson = salebuilder.build();
