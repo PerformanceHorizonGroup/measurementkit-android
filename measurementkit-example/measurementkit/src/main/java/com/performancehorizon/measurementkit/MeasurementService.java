@@ -6,14 +6,8 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 
-
-import android.support.v4.content.LocalBroadcastManager;
-
 import bolts.Continuation;
 import bolts.Task;
-
-
-import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
@@ -249,14 +243,6 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
         return !(this.status == MeasurementServiceStatus.ACTIVE &&
                 networkActive);
-    }
-
-    void fakeInstallBroadcast(Context currentcontext, String referrer)
-    {
-        Intent googleplayinstall = new Intent("com.android.vending.INSTALL_REFERRER");
-        googleplayinstall.putExtra("referrer", referrer);
-
-        LocalBroadcastManager.getInstance(currentcontext).sendBroadcast(googleplayinstall);
     }
 
     /**
@@ -588,83 +574,83 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         return activityloaded;
     }
 
-    /**
-     *
-     * Opens the given intent, with associated PH measurement data.  If the intent opens fails, the given uri is used to construct an alternative Intent,
-     * which is then opened (presuming a browser is available).
-     *
-     * This method can include calls on a background executor, so the activity launch will be asychronous.
-     *
-     * @param context the current contect, on which new activities will be started.
-     * @param intent the intent for the application you wish to open.
-     * @param camref camref representing the publisher's membership of the campaign.
-     * @param uri alternative uri.  An intent will be constructed from this uri, with action: ACTION_VIEW.
-    */
-    public static void openIntentWithAlternativeURI( Context context,Intent intent,String camref, Uri uri) {
-        openIntentWithAlternativeURI(context, intent, camref, uri, new IntentFactory(), false);
-    }
-
-    static void debugOpenIntentWithAlternativeURI( Context context,Intent intent,String camref, Uri uri) {
-        openIntentWithAlternativeURI(context, intent, camref, uri, new IntentFactory(), true);
-    }
-
-    static void openIntentWithAlternativeURI(Context context,Intent intent,String camref, Uri uri, IntentFactory factory, boolean isDebug) {
-        //gonna be using in the inner classes, so need to be final.
-        final Context thecontext = context;
-        final String thecamref= camref;
-        final Intent theintent = intent;
-        final Uri theuri = uri;
-        final boolean isdebug = isDebug;
-
-        final IntentFactory intentfactory = factory;
-
-        //retrieve the AAID on a background thread.
-        Task.callInBackground(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                try {
-                    if (Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient") != null) {
-
-                        AdvertisingIdClient.Info info = AdvertisingIdClient.getAdvertisingIdInfo(thecontext);
-
-                        return info.getId();
-                    }
-                    else {
-                        return null;
-                    }
-                }
-                catch(Exception advertisingidfail) {
-                    MeasurementServiceLog.d("Retrieval of advertising ID failed with error:  " +  advertisingidfail.toString()
-                            + " while opening intent");
-
-                    return null;
-                }
-            }
-        }).continueWith(new Continuation<String, Void>() {
-            @Override
-            public Void then(Task<String> task) throws Exception {
-                Intent trackedintent = MeasurementService.trackedIntent(theintent, thecamref, task.getResult(), intentfactory);
-
-                //try and open the new uri
-                boolean intentloaded = MeasurementService.startActvity(thecontext, trackedintent);
-
-                //if it fails, try open the given alternative url.
-                if (!intentloaded) {
-
-                    Uri deeplinkuri = (theintent.getData() == null) ? null : theintent.getData();
-
-                    Uri trackeduri = MeasurementService.measurementServiceURI(thecamref, task.getResult(), theuri, deeplinkuri, isdebug);
-                    Intent alternativeintent = intentfactory.getIntent(Intent.ACTION_VIEW, trackeduri);
-                    alternativeintent.addCategory(Intent.CATEGORY_BROWSABLE);
-
-                    startActvity(thecontext, alternativeintent);
-                }
-
-                return null;
-            }
-
-        });
-    }
+//    /**
+//     *
+//     * Opens the given intent, with associated PH measurement data.  If the intent opens fails, the given uri is used to construct an alternative Intent,
+//     * which is then opened (presuming a browser is available).
+//     *
+//     * This method can include calls on a background executor, so the activity launch will be asychronous.
+//     *
+//     * @param context the current contect, on which new activities will be started.
+//     * @param intent the intent for the application you wish to open.
+//     * @param camref camref representing the publisher's membership of the campaign.
+//     * @param uri alternative uri.  An intent will be constructed from this uri, with action: ACTION_VIEW.
+//    */
+//    public static void openIntentWithAlternativeURI( Context context,Intent intent,String camref, Uri uri) {
+//        openIntentWithAlternativeURI(context, intent, camref, uri, new IntentFactory(), false);
+//    }
+//
+//    static void debugOpenIntentWithAlternativeURI( Context context,Intent intent,String camref, Uri uri) {
+//        openIntentWithAlternativeURI(context, intent, camref, uri, new IntentFactory(), true);
+//    }
+//
+//    static void openIntentWithAlternativeURI(Context context,Intent intent,String camref, Uri uri, IntentFactory factory, boolean isDebug) {
+//        //gonna be using in the inner classes, so need to be final.
+//        final Context thecontext = context;
+//        final String thecamref= camref;
+//        final Intent theintent = intent;
+//        final Uri theuri = uri;
+//        final boolean isdebug = isDebug;
+//
+//        final IntentFactory intentfactory = factory;
+//
+//        //retrieve the AAID on a background thread.
+//        Task.callInBackground(new Callable<String>() {
+//            @Override
+//            public String call() throws Exception {
+//                try {
+//                    if (Class.forName("com.google.android.gms.ads.identifier.AdvertisingIdClient") != null) {
+//
+//                        AdvertisingIdClient.Info info = AdvertisingIdClient.getAdvertisingIdInfo(thecontext);
+//
+//                        return info.getId();
+//                    }
+//                    else {
+//                        return null;
+//                    }
+//                }
+//                catch(Exception advertisingidfail) {
+//                    MeasurementServiceLog.d("Retrieval of advertising ID failed with error:  " +  advertisingidfail.toString()
+//                            + " while opening intent");
+//
+//                    return null;
+//                }
+//            }
+//        }).continueWith(new Continuation<String, Void>() {
+//            @Override
+//            public Void then(Task<String> task) throws Exception {
+//                Intent trackedintent = MeasurementService.trackedIntent(theintent, thecamref, task.getResult(), intentfactory);
+//
+//                //try and open the new uri
+//                boolean intentloaded = MeasurementService.startActvity(thecontext, trackedintent);
+//
+//                //if it fails, try open the given alternative url.
+//                if (!intentloaded) {
+//
+//                    Uri deeplinkuri = (theintent.getData() == null) ? null : theintent.getData();
+//
+//                    Uri trackeduri = MeasurementService.measurementServiceURI(thecamref, task.getResult(), theuri, deeplinkuri, isdebug);
+//                    Intent alternativeintent = intentfactory.getIntent(Intent.ACTION_VIEW, trackeduri);
+//                    alternativeintent.addCategory(Intent.CATEGORY_BROWSABLE);
+//
+//                    startActvity(thecontext, alternativeintent);
+//                }
+//
+//                return null;
+//            }
+//
+//        });
+//    }
 
     protected void setCampaignID(String campaignID) {
         String trimmedcampaignid = campaignID.trim();
