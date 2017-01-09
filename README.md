@@ -41,7 +41,7 @@ To your app module, add the following.
 	    *
 	    * All other dependencies....
 	    */
-	    compile 'com.performancehorizon.android:measurementkit:0.3.7'
+	    compile 'com.performancehorizon.android:measurementkit:0.3.9'
 	}
 
 ### Implementing - Advertiser
