@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -160,4 +161,64 @@ public class TestEvent {
         assert(result.get("currency").equals("USD"));
         assert(salelist.size() == 2);
     }*/
+
+    @Test
+    public void testBuilder() {
+
+        Event event = new Event.Builder().build();
+        Assert.assertEquals(event.getCategory(), "category");
+    }
+
+    @Test
+    public void testBuilderCategory() {
+
+        Event event = new Event.Builder().category("mobile").build();
+        Assert.assertEquals(event.getCategory(), "mobile");
+    }
+
+    @Test
+    public void testBuilderWithSales() {
+
+        List<Sale> sales = new ArrayList<>();
+        sales.add(new Sale.Builder().category("item").value(new BigDecimal(15.6)).build());
+        Event event = new Event.Builder().sales(sales, "GBP").build();
+
+        Assert.assertEquals(event.getSales(), sales);
+        Assert.assertEquals(event.getSalesCurrency(), "GBP");
+    }
+
+    @Test
+    public void testBuilderCustomerReference() {
+
+        Event event = new Event.Builder().customerReference("customer_reference").build();
+        Assert.assertEquals(event.getCustomerReference(), "customer_reference");
+    }
+
+    @Test
+    public void testBuilderConversionReference() {
+
+        Event event = new Event.Builder().conversionReference("conversion_reference").build();
+        Assert.assertEquals(event.getConversionReference(), "conversion_reference");
+    }
+
+    @Test
+    public void testBuilderCustomerType() {
+
+        Event event = new Event.Builder().customerType("customer_type").build();
+        Assert.assertEquals(event.getCustomerType(), "customer_type");
+    }
+
+    @Test
+    public void testBuilderVoucher() {
+
+        Event event = new Event.Builder().voucher("voucher").build();
+        Assert.assertEquals(event.getVoucher(), "voucher");
+    }
+
+    @Test
+    public void testBuilderCountry() {
+
+        Event event = new Event.Builder().country("GB").build();
+        Assert.assertEquals(event.getCountry(), "GB");
+    }
 }

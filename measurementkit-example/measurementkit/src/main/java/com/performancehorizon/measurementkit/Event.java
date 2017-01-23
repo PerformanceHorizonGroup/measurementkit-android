@@ -14,6 +14,7 @@ import java.util.UUID;
  * An example could be registration, or an in-app purchase.
  */
 public class Event {
+
     private UUID internalEventID;
     private Map<String, String> meta;
     private Date date;
@@ -188,4 +189,85 @@ public class Event {
      */
     public void setCustomerType(String customerType) { this.customerType = customerType; }
 
+    /**
+     * convenience class to quickly construct Events
+     */
+    public static class Builder {
+
+        private String conversionReference;
+        private String customerReference;
+        private String category;
+        private List<Sale> sales;
+        private String salesCurrency;
+        private String voucher;
+        private String country;
+        private String customerType;
+
+        public Builder() {
+            this.category = "category";
+        }
+
+        public Builder conversionReference(String conversionReference) {
+            this.conversionReference = conversionReference;
+            return this;
+        }
+
+        public Builder customerReference(String customerReference) {
+            this.customerReference = customerReference;
+            return this;
+        }
+
+        public Builder category(String category) {
+            this.category = category;
+            return this;
+        }
+
+        public Builder sales(List<Sale> sales, String ofCurrency) {
+            this.sales = sales;
+            this.salesCurrency = ofCurrency;
+            return this;
+        }
+
+        public Builder voucher(String voucher) {
+            this.voucher = voucher;
+            return this;
+        }
+
+        public Builder country(String country) {
+            this.country = country;
+            return this;
+        }
+
+        public Builder customerType(String customerType) {
+            this.customerType = customerType;
+            return this;
+        }
+
+        public Event build() {
+
+            Event event = (this.sales != null) ? new Event(this.sales, this.salesCurrency): new Event(this.category);
+
+            if (this.customerReference != null) {
+                event.setCustomerReference(this.customerReference);
+            }
+
+            if (this.conversionReference != null) {
+                event.setConversionReference(this.conversionReference);
+            }
+
+            if (this.customerType != null) {
+                event.setCustomerType(this.customerType);
+            }
+
+            if (this.voucher != null) {
+                event.setVoucher(this.voucher);
+            }
+
+            if (this.country != null) {
+                event.setCountry(this.country);
+            }
+
+            return event;
+        }
+    }
 }

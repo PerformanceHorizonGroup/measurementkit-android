@@ -12,9 +12,10 @@ import java.util.Map;
  */
 public class Sale {
 
-    private String category;
 
+    private String category;
     private BigDecimal value;
+
     private BigDecimal commission;
     private BigDecimal override;
 
@@ -179,5 +180,110 @@ public class Sale {
 
     protected  Map<String, String> getMetaItems() {
         return this.saleMeta;
+    }
+
+    /**
+     * convenience class for constructing sales
+     */
+    public static class Builder {
+
+        //required fields
+        private String category = "category";
+        private BigDecimal value = new BigDecimal(0.0);
+
+        private BigDecimal commission;
+        private BigDecimal override;
+        private Integer quantity;
+        private String sku;
+        private String voucher;
+        private String country;
+
+        private Map<String, String> saleMeta= new HashMap<>();
+
+        public Builder category(String category) {
+            this.category = category;
+            return this;
+        }
+
+        public Builder value(BigDecimal value) {
+            this.value = value;
+            return this;
+        }
+
+        public Builder commission(BigDecimal commission) {
+            this.commission = commission;
+            return this;
+        }
+
+        public Builder override(BigDecimal override) {
+            this.override = override;
+            return this;
+        }
+
+        public Builder quantity(Integer quantity) {
+            this.quantity = quantity;
+            return this;
+        }
+
+        public Builder sku(String sku) {
+            this.sku = sku;
+            return this;
+        }
+
+        public Builder voucher(String voucher) {
+            this.voucher = voucher;
+            return this;
+        }
+
+        public Builder country(String country) {
+            this.country = country;
+            return this;
+        }
+
+        public Builder saleMetaItem(String key, String value) {
+            this.saleMeta.put(key, value);
+            return this;
+        }
+
+        public Builder() {}
+
+        public Sale build() {
+            Sale sale = new Sale(this.category, this.value);
+
+            if (this.commission != null) {
+                sale.setCommission(this.commission);
+            }
+
+            if (this.override != null) {
+                sale.setOverride(this.override);
+            }
+
+            if (this.quantity != null) {
+                sale.setQuantity(this.quantity);
+            }
+
+            if (this.sku != null) {
+                sale.setSKU(this.sku);
+            }
+
+            if (this.voucher != null) {
+                sale.setVoucher(this.voucher);
+            }
+
+            if (this.country != null) {
+                sale.setCountry(this.country);
+            }
+
+            if (this.saleMeta.size() > 0) {
+
+                for(Map.Entry<String, String> entry : this.saleMeta.entrySet()) {
+                    sale.setMetaItem(entry.getKey(), entry.getValue());
+                }
+            }
+
+            return sale;
+        }
+
+
     }
 }
