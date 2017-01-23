@@ -105,6 +105,22 @@ public class TestEvent {
         Assert.assertEquals("customerreference", event.getCustomerReference());
     }
 
+    @Test
+    public void testSetCountry() {
+        Event event = new Event("event");
+        event.setCountry("GB");
+
+        Assert.assertEquals("GB", event.getCountry());
+    }
+
+    @Test
+    public void testSetCustomerType() {
+        Event event = new Event("sigh");
+        event.setCustomerType("difficult");
+
+        Assert.assertEquals("difficult", event.getCustomerType());
+    }
+
     /*public void testAddSale()
     {
         this.event = new Event("event");

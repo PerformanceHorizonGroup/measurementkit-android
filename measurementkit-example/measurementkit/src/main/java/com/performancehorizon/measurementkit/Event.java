@@ -25,6 +25,7 @@ public class Event {
     private String salesCurrency;
     private String voucher;
     private String country;
+    private String customerType;
 
     private Event()
     {
@@ -154,7 +155,7 @@ public class Event {
      * @return Voucher code used in event (may be null)
      */
     protected String getVoucher() {
-        return voucher;
+        return this.voucher;
     }
 
     /**
@@ -167,7 +168,7 @@ public class Event {
     }
 
     protected String getCountry() {
-        return country;
+        return this.country;
     }
 
     /**
@@ -178,4 +179,13 @@ public class Event {
     public void setCountry(String country) {
         this.country = country;
     }
+
+    protected String getCustomerType() { return this.customerType; }
+
+    /**
+     * sets the customer type for the event
+     * @param customerType - the type of customer who performed the event
+     */
+    public void setCustomerType(String customerType) { this.customerType = customerType; }
+
 }

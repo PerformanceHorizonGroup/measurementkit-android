@@ -99,6 +99,7 @@ public class EventRequestJSONBuilder {
             eventrequest.putOpt("currency", event.getSalesCurrency());
             eventrequest.putOpt("country", event.getCountry());
             eventrequest.putOpt("voucher", event.getVoucher());
+            eventrequest.putOpt("customer_type", event.getCustomerType());
 
             return eventrequest;
 

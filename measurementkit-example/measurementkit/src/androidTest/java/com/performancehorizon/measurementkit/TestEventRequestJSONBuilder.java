@@ -212,6 +212,24 @@ public class TestEventRequestJSONBuilder {
         Assert.assertEquals(eventjson.getString("country"), "country");
     }
 
+    @Test
+    public void testCustomerType() throws Exception
+    {
+        EventRequestJSONBuilder eventbuilder = new EventRequestJSONBuilder();
+
+        Event event = new Event("category");
+        event.setCustomerType("customer");
+
+        eventbuilder.setEvent(event)
+                .setCampaignID("campaign_id")
+                .setMobileTrackingID("mobile_tracking_id");
+
+        JSONObject eventjson = eventbuilder.build();
+
+        Assert.assertEquals(eventjson.getString("customer_type"), "customer");
+    }
+
+
     /*@Test
     public void testIntegrationsExample() throws Exception
     {
