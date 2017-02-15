@@ -75,7 +75,7 @@ The Google Play Store offers a method for ensuring optimal tracking accuracy via
 On install of the App, you can enable the pass back of this referrer value through the :
 
 	<application>
-	    <receiver android:name="com.performancehorizon.mobiletracking.ReferrerTracker" android:exported="true">
+	    <receiver android:name="com.performancehorizon.measurementkit.ReferrerTracker" android:exported="true">
 	        <intent-filter>
 	             <action android:name="com.android.vending.INSTALL_REFERRER" />
 	        </intent-filter>
