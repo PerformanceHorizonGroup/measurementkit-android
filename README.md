@@ -108,7 +108,7 @@ The currency parameter is a ISO 4217 currency code. (eg, USD, GBP)
 
 	Event event = new Event(new Sale("premium upgrade", new BigDecimal(34.5)), "GBP");
 
-	MeasurementService.trackingInstance().trackEvent(event);
+	MeasurementService.sharedInstance().trackEvent(event);
 
 #### URL Scheme configuration
 
