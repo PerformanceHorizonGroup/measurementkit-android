@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -78,7 +79,9 @@ public class TestMeasurementService_RegisterComplete {
 
         service.registerRequestQueueDidComplete(registerQueue, request, RESULT, processorFactory);
 
-        verifyZeroInteractions(storage, eventQueue);
+        //ignored, no tracking result stored.
+        verify(storage, times(0)).putTrackingID(anyString());
+
         Assert.assertEquals(service.getStatus(), MeasurementService.MeasurementServiceStatus.ACTIVE);
     }
 
@@ -89,7 +92,9 @@ public class TestMeasurementService_RegisterComplete {
 
         service.registerRequestQueueDidComplete(registerQueue, request, RESULT, processorFactory);
 
-        verifyZeroInteractions(storage, eventQueue);
+        //ignored, no tracking result stored.
+        verify(storage, times(0)).putTrackingID(anyString());
+
         Assert.assertEquals(service.getStatus(), MeasurementService.MeasurementServiceStatus.HALTED);
     }
 
@@ -100,7 +105,9 @@ public class TestMeasurementService_RegisterComplete {
 
         service.registerRequestQueueDidComplete(registerQueue, request, RESULT, processorFactory);
 
-        verifyZeroInteractions(storage, eventQueue);
+        //ignored, no tracking result stored.
+        verify(storage, times(0)).putTrackingID(anyString());
+
         Assert.assertEquals(service.getStatus(), MeasurementService.MeasurementServiceStatus.INACTIVE);
     }
 
@@ -111,7 +118,9 @@ public class TestMeasurementService_RegisterComplete {
 
         service.registerRequestQueueDidComplete(registerQueue, request, RESULT, processorFactory);
 
-        verifyZeroInteractions(storage, eventQueue);
+        //ignored, no tracking result stored.
+        verify(storage, times(0)).putTrackingID(anyString());
+
         Assert.assertEquals(service.getStatus(), MeasurementService.MeasurementServiceStatus.AWAITING_INITIALISE);
     }
 
@@ -149,7 +158,7 @@ public class TestMeasurementService_RegisterComplete {
         service.registerRequestQueueDidComplete(registerQueue, request, RESULT, processorFactory);
 
         Assert.assertEquals(service.getStatus(), MeasurementService.MeasurementServiceStatus.ACTIVE);
-        verify(registerQueue).setQueueIsPaused(true);
+        verify(registerQueue).setQueueIsPaused(false);
         verify(eventQueue).setQueueIsPaused(false);
         verify(eventQueue).setTrackingIDForIncompleteRequests("tracking_id");
     }
@@ -164,7 +173,8 @@ public class TestMeasurementService_RegisterComplete {
         service.registerRequestQueueDidComplete(registerQueue, request, RESULT, processorFactory);
 
         Assert.assertEquals(service.getStatus(), MeasurementService.MeasurementServiceStatus.INACTIVE);
-        verify(registerQueue).setQueueIsPaused(true);
+
+        verify(registerQueue).setQueueIsPaused(false);
         verify(eventQueue).setQueueIsPaused(true);
 
         verify(eventQueue).clearIncompleteRequests();
@@ -182,7 +192,8 @@ public class TestMeasurementService_RegisterComplete {
         Assert.assertEquals(service.getStatus(), MeasurementService.MeasurementServiceStatus.ACTIVE);
 
         verify(this.storage).putTrackingID("tracking_id");
-        verify(registerQueue).setQueueIsPaused(true);
+
+        verify(registerQueue).setQueueIsPaused(false);
         verify(eventQueue).setQueueIsPaused(false);
     }
 

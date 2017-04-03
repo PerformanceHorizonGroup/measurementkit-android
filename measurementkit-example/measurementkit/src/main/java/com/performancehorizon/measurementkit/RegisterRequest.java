@@ -18,6 +18,7 @@ public class RegisterRequest {
     private String referrer;
     private String androidAdvertisingIdentifier;
     private boolean installed = false;
+    private boolean shouldOverwrite = true;
 
     public RegisterRequest( Context context) {
         this(context, true);
@@ -114,4 +115,8 @@ public class RegisterRequest {
     public String getAndroidAdvertisingIdentifier() {return androidAdvertisingIdentifier;};
 
     public boolean getInstalled() {return installed;}
+
+    public boolean getShouldOverwrite() { return shouldOverwrite;}
+
+    public void setShouldOverwrite(boolean shouldOverwrite) { this.shouldOverwrite = shouldOverwrite;}
 }

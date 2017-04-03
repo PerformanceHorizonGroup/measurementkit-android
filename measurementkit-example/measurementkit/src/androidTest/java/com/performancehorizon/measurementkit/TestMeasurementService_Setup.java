@@ -143,6 +143,9 @@ public class TestMeasurementService_Setup {
         this.tracker = mock(ReferrerTracker.class);
         when(trackerFactory.getReferrerTracker()).thenReturn(this.tracker);
         when(tracker.getReferrer(any(Context.class))).thenReturn(null);
+
+        Context applicationcontext = mock(Context.class);
+        when(context.getApplicationContext()).thenReturn(applicationcontext);
     }
 
     @Test
@@ -165,7 +168,7 @@ public class TestMeasurementService_Setup {
         verify(registerQueue, times(0)).setQueueIsPaused(anyBoolean());
         verify(eventQueue, times(0)).setQueueIsPaused(anyBoolean());
 
-        verify(this.eventQueue).addEventRequest(argThat(new EventRequestNoTrackingID()));
+        verify(this.eventQueue, times(0)).addEventRequest(argThat(new EventRequestNoTrackingID()));
     }
 
     @Test
@@ -192,7 +195,7 @@ public class TestMeasurementService_Setup {
         reachabilitycallback.onNetworkActive();
 
         //should set the event queue to active, register queue to inactive
-        verify(registerQueue).setQueueIsPaused(true);
+        verify(registerQueue).setQueueIsPaused(false);
         verify(eventQueue).setQueueIsPaused(false);
     }
 

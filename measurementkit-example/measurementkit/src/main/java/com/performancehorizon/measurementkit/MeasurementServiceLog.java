@@ -8,7 +8,7 @@ import android.util.Log;
  */
 public class MeasurementServiceLog {
 
-    protected final static String TRACKING_LOG = "PHN_MT";
+    protected final static String TRACKING_LOG = "PHN_MMK";
 
     public static void d( String log) {
         Log.d(TRACKING_LOG, log);

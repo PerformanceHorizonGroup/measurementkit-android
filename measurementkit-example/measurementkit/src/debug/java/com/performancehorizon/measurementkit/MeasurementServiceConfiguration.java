@@ -37,7 +37,7 @@ public class MeasurementServiceConfiguration {
     {
         MeasurementServiceConfiguration debugconfig = new MeasurementServiceConfiguration();
         debugconfig.setDebugMode(true);
-        debugconfig.setUseActiveFingerprinting(true);
+        debugconfig.setUseActiveFingerprinting(false);
 
         return debugconfig;
     }
@@ -45,7 +45,7 @@ public class MeasurementServiceConfiguration {
     public static MeasurementServiceConfiguration activeFingerprintConfig() {
         MeasurementServiceConfiguration activeconfig = new MeasurementServiceConfiguration();
         activeconfig.setUseActiveFingerprinting(true);
-        activeconfig.setDebugMode(true);
+        activeconfig.setDebugMode(false);
 
         return activeconfig;
     }

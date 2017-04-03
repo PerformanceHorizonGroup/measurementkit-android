@@ -1,8 +1,10 @@
 package com.performancehorizon.measurementkit;
 
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 
@@ -122,7 +124,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         INACTIVE,
 
         /**
-         * Service has been constructed but not started.
+         * Service has been constructed but is yet to register.
          */
         AWAITING_INITIALISE,
 
@@ -137,8 +139,8 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
 
     //service configuration
-     private  MeasurementServiceConfiguration config;
-     private  MeasurementServiceStatus status = MeasurementServiceStatus.AWAITING_INITIALISE;
+     private MeasurementServiceConfiguration config;
+     private MeasurementServiceStatus status = MeasurementServiceStatus.AWAITING_INITIALISE;
 
     //callback
      private MeasurementServiceCallback callback;
@@ -156,12 +158,14 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
     private FingerprinterFactory fingerprinterfactory;
 
-     private WeakReference<Context> context;
-     private MeasurementServiceStorage storage;
+    private WeakReference<Context> context;
+    private MeasurementServiceStorage storage;
 
-     private Uri referrer;
-     private Intent deepLinkIntent;
+    private Uri referrer;
+    private Intent deepLinkIntent;
     private boolean isInstalled =  false;
+
+    private RegisterRequestFactory registerRequestFactory;
 
     protected class TrackingConstants
     {
@@ -235,8 +239,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
 
     private boolean registerQueueIsPaused(boolean networkActive) {
-        return !(this.status == MeasurementServiceStatus.QUERYING &&
-                networkActive);
+        return !(networkActive);
     }
 
     private boolean eventQueueIsPaused(boolean networkActive) {
@@ -331,21 +334,22 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                                ReachabilityFactory reachabilityFactory,
                                IntentProcessorFactory processorFactory,
                                final RegisterRequestFactory registerRequestFactory,
-                               ReferrerTrackerFactory trackerFactory)
+                               final ReferrerTrackerFactory trackerFactory)
     {
         this.context = new WeakReference<>(context);
         this.setAdvertiserID(advertiserID);
         this.setCampaignID(campaignID);
 
+        this.registerRequestFactory = registerRequestFactory;
         this.storage = storageFactory.getMeasurementStorage(context);
 
         if (this.context.get() != null) {
 
-            //load from shared preferences.
+            // load from shared preferences.
             this.storage.loadFromPreferences();
 
+            // configure callbacks, start with reachability
             ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-
             this.reachability = reachabilityFactory.getReachability(connectivityManager, new ReachabilityCallback() {
                 @Override
                 public void onNetworkActive() {
@@ -353,15 +357,32 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                     MeasurementService.this.registerQueue.setQueueIsPaused(MeasurementService.this.registerQueueIsPaused(true));
                 }
             });
+
+            // callbacks for receiving the install broadcast.
+            BroadcastReceiver referrerreciever = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+
+                    MeasurementService.this.storeReferrer(context, trackerFactory);
+
+                    //if we're overwriting an old mobile tracking id, if we have no
+                    if (MeasurementService.this.status == MeasurementServiceStatus.INACTIVE
+                            || MeasurementService.this.status == MeasurementServiceStatus.AWAITING_INITIALISE) {
+                        MeasurementService.this.setStatus(MeasurementServiceStatus.QUERYING);
+                        MeasurementService.this.register(registerRequestFactory);
+                    }
+                    else if (MeasurementService.this.status == MeasurementServiceStatus.ACTIVE) {
+                        MeasurementService.this.register(registerRequestFactory);
+                    }
+                }
+            };
+
+            IntentFilter getreferrer = new IntentFilter(ReferrerTracker.BROADCAST_ACTION);
+            context.getApplicationContext().registerReceiver(referrerreciever, getreferrer);
         }
 
-        //now source data from the referrer
-        ReferrerTracker tracker = trackerFactory.getReferrerTracker();
-        if (context != null && tracker.getReferrer(context) != null) {
-            //we're really just switching the referrer from one set of storage to another here.
-            this.storage.putReferrerQuery(tracker.getReferrer(context));
-            tracker.clearReferrer(context);
-        }
+        //now source data from the referrer if it's already present
+        MeasurementService.this.storeReferrer(context, trackerFactory);
 
         //and the opening intent
         this.deepLinkIntent = this.processDeepLink(intent, processorFactory);
@@ -369,22 +390,30 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         //set the initial status (also configures the queue states)
         this.setStatus(this.storage.status());
 
-        //if a new query is needed, send off request.
-        if (this.status == MeasurementServiceStatus.QUERYING) {
+        //we may need to
+        if (this.status == MeasurementServiceStatus.AWAITING_INITIALISE && this.config.useActiveFingerprinting()) {
+            this.setStatus(MeasurementServiceStatus.QUERYING);
 
-            if (this.config.useActiveFingerprinting()) {
-                ActiveFingerprinter fingerprinter = new ActiveFingerprinter(this.context.get(), new ActiveFingerprinter.Callback() {
-                    @Override
-                    public void activeFingerprintComplete(ActiveFingerprinter fingerprinter, Map<String, String> fingerprint) {
-                        register(registerRequestFactory, fingerprint);
-                    }
-                });
+            ActiveFingerprinter fingerprinter = new ActiveFingerprinter(this.context.get(), new ActiveFingerprinter.Callback() {
+                @Override
+                public void activeFingerprintComplete(ActiveFingerprinter fingerprinter, Map<String, String> fingerprint) {
+                    register(registerRequestFactory, fingerprint);
+                }
+            });
 
-                fingerprinter.generateFingerprint();
-            }
-            else {
-                this.register(registerRequestFactory);
-            }
+            fingerprinter.generateFingerprint();
+        }
+        else if (this.status == MeasurementServiceStatus.QUERYING) {
+            this.register(registerRequestFactory);
+        }
+    }
+
+    //store the referrer in the MMK internal storage.
+    private void storeReferrer(Context context, ReferrerTrackerFactory factory) {
+        ReferrerTracker tracker = factory.getReferrerTracker();
+        if (context != null && tracker.getReferrer(context) != null) {
+            this.storage.putReferrerQuery(tracker.getReferrer(context));
+            tracker.clearReferrer(context);
         }
     }
 
@@ -400,6 +429,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                         factory.getEventRequest(event) :
                         factory.getEventRequest(event, this.storage.getTrackingID()));
                 break;
+            case AWAITING_INITIALISE:
             case INACTIVE:
                 //do nothing!
                 break;
@@ -693,19 +723,19 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
     void registerRequestQueueDidComplete(RegisterRequestQueue queue, RegisterRequest request, String result,
                                          RegistrationProcessorFactory registerFactory) {
 
+        //clear camref
+        if (request.getCamref() != null && request.getCamref().equals(this.storage.getCamRef())) {
+            this.storage.clearCamref();
+        }
+
+        //clear referrer
+        if (request.getReferrer() != null && request.getReferrer().equals(this.storage.getReferrer())) {
+            this.storage.clearReferrer();
+        }
+
+        RegistrationProcessor registrationprocessor = registerFactory.getRequestProcessor(result);
+
         if (this.status == MeasurementServiceStatus.QUERYING) {
-
-            RegistrationProcessor registrationprocessor = registerFactory.getRequestProcessor(result);
-
-            //clear camref
-            if (request.getCamref() != null && request.getCamref().equals(this.storage.getCamRef())) {
-                this.storage.clearCamref();
-            }
-
-            //clear referrer
-            if (request.getReferrer() != null && request.getReferrer().equals(this.storage.getReferrer())) {
-                this.storage.clearReferrer();
-            }
 
             //if the registration has failed
             if (registrationprocessor.hasRegistrationFailed()) {
@@ -721,6 +751,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                 }
             }
             else {
+
                 this.setStatus(MeasurementServiceStatus.ACTIVE);
                 this.storage.putTrackingID(registrationprocessor.getTrackingID());
 
@@ -736,7 +767,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
                 //get the deep link
                 if (registrationprocessor.getDeeplink() != null) {
-                    this.deepLinkIntent =  new Intent(Intent.ACTION_VIEW, registrationprocessor.getDeeplink());
+                    this.deepLinkIntent = new Intent(Intent.ACTION_VIEW, registrationprocessor.getDeeplink());
 
                     //callback & referrer.
                     if (this.callback != null) {
@@ -744,6 +775,16 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                     }
                 }
             }
+        }
+
+        //we may need to make another query if the referrer was recieved during the previous query.
+        if (this.storage.getReferrer() != null) {
+
+            if (this.status != MeasurementServiceStatus.ACTIVE) {
+                this.setStatus(MeasurementServiceStatus.QUERYING);
+            }
+
+            this.register(this.registerRequestFactory);
         }
     }
 
