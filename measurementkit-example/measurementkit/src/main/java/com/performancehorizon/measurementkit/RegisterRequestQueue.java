@@ -61,6 +61,10 @@ public class RegisterRequestQueue implements TrackingRequestQueueDelegate {
         this.delegate = new WeakReference<>(delegate);
     }
 
+    public boolean containsRequest(RegisterRequest request) {
+        return this.requests.containsValue(request);
+    }
+
     public void addRegisterRequest(RegisterRequest request) {
 
         RegisterRequestJSONBuilder requestbuilder = this.jsonFactory.jsonBuilder();

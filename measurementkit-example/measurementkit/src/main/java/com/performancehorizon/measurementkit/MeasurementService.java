@@ -164,8 +164,10 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
     private Uri referrer;
     private Intent deepLinkIntent;
     private boolean isInstalled =  false;
+    private boolean callbacksRegistered = false;
 
     private RegisterRequestFactory registerRequestFactory;
+
 
     protected class TrackingConstants
     {
@@ -300,7 +302,9 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                     registerrequest.setInstalled();
                 }
 
-                MeasurementService.this.registerQueue.addRegisterRequest(registerrequest);
+                if (! MeasurementService.this.registerQueue.containsRequest(registerrequest) ) {
+                    MeasurementService.this.registerQueue.addRegisterRequest(registerrequest);
+                }
 
                 return null;
             }
@@ -336,49 +340,58 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                                final RegisterRequestFactory registerRequestFactory,
                                final ReferrerTrackerFactory trackerFactory)
     {
-        this.context = new WeakReference<>(context);
         this.setAdvertiserID(advertiserID);
         this.setCampaignID(campaignID);
 
         this.registerRequestFactory = registerRequestFactory;
         this.storage = storageFactory.getMeasurementStorage(context);
 
-        if (this.context.get() != null) {
+        if (context != null) {
+
+            this.context = new WeakReference<>(context.getApplicationContext());
 
             // load from shared preferences.
             this.storage.loadFromPreferences();
 
-            // configure callbacks, start with reachability
-            ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-            this.reachability = reachabilityFactory.getReachability(connectivityManager, new ReachabilityCallback() {
-                @Override
-                public void onNetworkActive() {
-                    MeasurementService.this.eventQueue.setQueueIsPaused(MeasurementService.this.eventQueueIsPaused(true));
-                    MeasurementService.this.registerQueue.setQueueIsPaused(MeasurementService.this.registerQueueIsPaused(true));
-                }
-            });
+            //may be initialised several times, but we want to avoid repeated broadcasts if we can.
+            if (!this.callbacksRegistered) {
 
-            // callbacks for receiving the install broadcast.
-            BroadcastReceiver referrerreciever = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-
-                    MeasurementService.this.storeReferrer(context, trackerFactory);
-
-                    //if we're overwriting an old mobile tracking id, if we have no
-                    if (MeasurementService.this.status == MeasurementServiceStatus.INACTIVE
-                            || MeasurementService.this.status == MeasurementServiceStatus.AWAITING_INITIALISE) {
-                        MeasurementService.this.setStatus(MeasurementServiceStatus.QUERYING);
-                        MeasurementService.this.register(registerRequestFactory);
+                // configure callbacks, start with reachability
+                ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                this.reachability = reachabilityFactory.getReachability(connectivityManager, new ReachabilityCallback() {
+                    @Override
+                    public void onNetworkActive() {
+                        MeasurementService.this.eventQueue.setQueueIsPaused(MeasurementService.this.eventQueueIsPaused(true));
+                        MeasurementService.this.registerQueue.setQueueIsPaused(MeasurementService.this.registerQueueIsPaused(true));
                     }
-                    else if (MeasurementService.this.status == MeasurementServiceStatus.ACTIVE) {
-                        MeasurementService.this.register(registerRequestFactory);
-                    }
-                }
-            };
+                });
 
-            IntentFilter getreferrer = new IntentFilter(ReferrerTracker.BROADCAST_ACTION);
-            context.getApplicationContext().registerReceiver(referrerreciever, getreferrer);
+                // callbacks for receiving the install broadcast.
+                BroadcastReceiver referrerreciever = new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+
+                        MeasurementService.this.storeReferrer(context, trackerFactory);
+
+                        //if we're overwriting an old mobile tracking id, if we have no
+                        if (MeasurementService.this.status == MeasurementServiceStatus.INACTIVE
+                                || MeasurementService.this.status == MeasurementServiceStatus.AWAITING_INITIALISE) {
+                            MeasurementService.this.setStatus(MeasurementServiceStatus.QUERYING);
+                            MeasurementService.this.register(registerRequestFactory);
+                        } else if (MeasurementService.this.status == MeasurementServiceStatus.ACTIVE) {
+                            MeasurementService.this.register(registerRequestFactory);
+                        }
+                    }
+                };
+
+                IntentFilter getreferrer = new IntentFilter(ReferrerTracker.BROADCAST_ACTION);
+                context.getApplicationContext().registerReceiver(referrerreciever, getreferrer);
+
+                this.callbacksRegistered = true;
+            }
+        }
+        else {
+            this.context = new WeakReference<>(null);
         }
 
         //now source data from the referrer if it's already present

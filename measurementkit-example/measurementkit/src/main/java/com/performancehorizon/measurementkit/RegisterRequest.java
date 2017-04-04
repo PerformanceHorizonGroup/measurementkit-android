@@ -119,4 +119,44 @@ public class RegisterRequest {
     public boolean getShouldOverwrite() { return shouldOverwrite;}
 
     public void setShouldOverwrite(boolean shouldOverwrite) { this.shouldOverwrite = shouldOverwrite;}
+
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (!(obj instanceof RegisterRequest)) {
+            return false;
+        }
+
+        return this.isEqualToRegisterRequest((RegisterRequest)obj);
+    }
+
+    private static boolean presentAndEqual(Object first, Object second) {
+
+        if (first == null) {
+            return second == null;
+        }
+        else {
+            return first.equals(second);
+        }
+    }
+
+    public boolean isEqualToRegisterRequest(RegisterRequest request) {
+
+        return presentAndEqual(this.advertiserID, request.advertiserID) &&
+                presentAndEqual(this.campaignID, request.campaignID) &&
+                presentAndEqual(this.referrer, request.referrer) &&
+                presentAndEqual(this.camref, request.camref) &&
+                presentAndEqual(this.androidAdvertisingIdentifier, request.androidAdvertisingIdentifier);
+    }
+
+    public int hashCode() {
+
+        return ((this.advertiserID == null) ? 0 : this.advertiserID.hashCode()) ^
+                ((this.campaignID == null) ? 0 : this.campaignID.hashCode()) ^
+                ((this.referrer == null) ? 0 : this.referrer.hashCode()) ^
+                ((this.camref == null) ? 0 : this.camref.hashCode()) ^
+                ((this.androidAdvertisingIdentifier == null) ? 0 : this.androidAdvertisingIdentifier.hashCode());
+    }
 }

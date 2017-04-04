@@ -72,6 +72,53 @@ public class TestRegisterRequestQueue {
     }
 
     @Test
+    public void testAddRequestContains() {
+
+        //lot of dependency set up for not alot of test...
+
+        TrackingRequestQueue requestqueue = mock(TrackingRequestQueue.class);
+        TrackingRequestFactory requestfactory = mock(TrackingRequestFactory.class);
+        TrackingURLHelper urlhelper = mock(TrackingURLHelper.class);
+
+        TrackingRequest mocktrackingrequest = mock(TrackingRequest.class);
+        when(requestfactory.getRequest(anyString(), any(JSONObject.class))).thenReturn(mocktrackingrequest);
+
+        RegisterRequestJSONBuilder builder = mock(RegisterRequestJSONBuilder.class);
+        when(builder.setRequest(any(RegisterRequest.class))).thenReturn(builder);
+        when(builder.build()).thenReturn(new JSONObject());
+
+        RegisterRequestQueue.RegisterRequestJSONFactory builderfactory = mock(RegisterRequestQueue.RegisterRequestJSONFactory.class);
+        when(builderfactory.jsonBuilder()).thenReturn(builder);
+
+        RegisterRequest requesta = new RegisterRequest(null);
+        RegisterRequest requestb = new RegisterRequest(null);
+        RegisterRequest requestc = new RegisterRequest(null);
+
+        requesta.setCamref("bob");
+        requesta.setAdvertiserID("steve");
+        requesta.setReferrer("james");
+        requesta.setCampaignID("campaign");
+
+        requestb.setCamref("bob");
+        requestb.setAdvertiserID("steve");
+        requestb.setReferrer("james");
+        requestb.setCampaignID("campaign");
+
+        requestc.setCamref("nick");
+        requestc.setAdvertiserID("tom");
+        requestc.setReferrer("jens");
+        requestc.setReferrer("othercampaign");
+
+        RegisterRequestQueue queue = new RegisterRequestQueue(requestqueue, requestfactory, urlhelper, builderfactory);
+        queue.addRegisterRequest(requesta);
+
+        Assert.assertTrue(queue.containsRequest(requesta));
+        Assert.assertTrue(queue.containsRequest(requestb));
+
+        Assert.assertFalse(queue.containsRequest(requestc));
+    }
+
+    @Test
     public void testAddFailedRequest() {
 
         //lot of dependency set up for not alot of test...
