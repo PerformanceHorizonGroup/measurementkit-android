@@ -221,6 +221,9 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
         this.config = config;
 
+        //set up extended logging.
+        MeasurementServiceLog.setDebugModeActive(config.isDebugLogActive());
+
         this.registerQueue = registerQueue;
         this.registerQueue.setDelegate(this);
         this.urlHelper = new TrackingURLHelper(config.getDebugModeActive());
@@ -231,6 +234,8 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         this.fingerprinterfactory = fingerprintFactory;
 
         this.status = MeasurementServiceStatus.AWAITING_INITIALISE;
+
+        MeasurementServiceLog.debug(String.format("Measurement Service initialised with the following config: %s", config.toString()));
     }
 
 
@@ -369,10 +374,15 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         //set the initial status (also configures the queue states)
         this.setStatus(this.storage.status());
 
+        MeasurementServiceLog.debug(String.format("Measurement Service status is: %s", this.storage.status().toString()));
+
         //if a new query is needed, send off request.
         if (this.status == MeasurementServiceStatus.QUERYING) {
 
             if (this.config.useActiveFingerprinting()) {
+
+                MeasurementServiceLog.debug("Starting active Fingerprinter");
+
                 ActiveFingerprinter fingerprinter = new ActiveFingerprinter(this.context.get(), new ActiveFingerprinter.Callback() {
                     @Override
                     public void activeFingerprintComplete(ActiveFingerprinter fingerprinter, Map<String, String> fingerprint) {
@@ -383,6 +393,9 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                 fingerprinter.generateFingerprint();
             }
             else {
+
+                MeasurementServiceLog.debug("calling /register");
+
                 this.register(registerRequestFactory);
             }
         }
@@ -390,11 +403,14 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
     void trackEvent(Event event, EventRequestFactory factory)
     {
+
+
         //if you're inactive, ignore.  If you're active, send off.
         //all other states, queue without a confirmed mobile tracking id.
         switch(this.status) {
             case ACTIVE:
 
+                MeasurementServiceLog.debug("tracking event");
                 //this is just a catch in case somehow
                 this.eventQueue.addEventRequest((this.storage.getTrackingID() == null) ?
                         factory.getEventRequest(event) :
@@ -402,8 +418,11 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                 break;
             case INACTIVE:
                 //do nothing!
+                MeasurementServiceLog.debug("event ignored, measurement service is inactive");
+
                 break;
             default:
+                MeasurementServiceLog.debug("queueing event");
                 this.eventQueue.addEventRequest(
                         factory.getEventRequest(event));
         }
@@ -451,6 +470,8 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         WebClickIntentProccessor webprocessor = factory.getWebIntentProcessor(intent);
 
         if (webprocessor.getMobileTrackingID() != null) {
+
+            MeasurementServiceLog.debug(String.format("Measurement Service launched by deep link, MTID is %s", webprocessor.getMobileTrackingID()));
             this.storage.putTrackingID(webprocessor.getMobileTrackingID());
             return webprocessor.getFilteredIntent();
         }
@@ -458,6 +479,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         AppClickIntentProcessor appprocessor = factory.getAppIntentProcessor(intent, TrackingConstants.TRACKING_INTENT_CAMREF);
 
         if (appprocessor.getCamref() != null) {
+            MeasurementServiceLog.debug(String.format("Measurement Service launched by deep link, camref is %s", appprocessor.getCamref()));
             this.storage.putCamrefQuery(appprocessor.getCamref());
             return appprocessor.getFilteredIntent();
         }
@@ -465,6 +487,7 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
         UniversalIntentProcessor universalprocessor = factory.getUniversalIntentProcessor(intent, this.urlHelper);
 
         if (universalprocessor.getCamref() != null) {
+            MeasurementServiceLog.debug(String.format("Measurement Service launched by deep link, camref is %s", universalprocessor.getCamref()));
             this.storage.putCamrefQuery(universalprocessor.getCamref());
             return universalprocessor.getFilteredIntent();
         }
@@ -695,26 +718,36 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
         if (this.status == MeasurementServiceStatus.QUERYING) {
 
+
             RegistrationProcessor registrationprocessor = registerFactory.getRequestProcessor(result);
 
             //clear camref
             if (request.getCamref() != null && request.getCamref().equals(this.storage.getCamRef())) {
                 this.storage.clearCamref();
+                MeasurementServiceLog.debug("Clearing matched camref");
             }
 
             //clear referrer
             if (request.getReferrer() != null && request.getReferrer().equals(this.storage.getReferrer())) {
                 this.storage.clearReferrer();
+                MeasurementServiceLog.debug("Clearing matched referrer token");
             }
 
             //if the registration has failed
             if (registrationprocessor.hasRegistrationFailed()) {
+
+
                 //if there's already a tracking id, then just return to using it.
                 if (this.storage.getTrackingID() != null) {
+
+                    MeasurementServiceLog.debug("Failed registration - Resuming use of previous MTID");
+
                     this.setStatus(MeasurementServiceStatus.ACTIVE);
                     this.eventQueue.setTrackingIDForIncompleteRequests(this.storage.getTrackingID());
                 }
                 else {
+
+                    MeasurementServiceLog.debug("Failed registration - Measurement Service is inactive.");
                     this.storage.putTrackingInactive();
                     this.setStatus(MeasurementServiceStatus.INACTIVE);
                     this.eventQueue.clearIncompleteRequests();
@@ -723,6 +756,8 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
             else {
                 this.setStatus(MeasurementServiceStatus.ACTIVE);
                 this.storage.putTrackingID(registrationprocessor.getTrackingID());
+
+                MeasurementServiceLog.debug(String.format("Sucessful registration - Using MTID %s", registrationprocessor.getTrackingID()));
 
                 //call the callback for registration complete
                 if (this.callback != null) {
@@ -744,6 +779,9 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
                     }
                 }
             }
+        } else
+        {
+            MeasurementServiceLog.debug("Measurement Service recieved register response, but it will be ignored.");
         }
     }
 

@@ -7,6 +7,11 @@ public class MeasurementServiceConfiguration {
     private boolean debugModeActive = false;
     private boolean trackAndroidAdvertisingIdentifier = true;
     private boolean useActiveFingerprinting = false;
+    private boolean debugLogActive = false;
+
+    public String toString() {
+        return "Configuration:  [ debug urls %b, track AAID %b, \n active fingerprinting %b, Debug log active %b ]";
+    }
 
     protected boolean useActiveFingerprinting() {
         return this.useActiveFingerprinting;
@@ -14,6 +19,14 @@ public class MeasurementServiceConfiguration {
 
     private void setUseActiveFingerprinting(boolean useActiveFingerprinting) {
         this.useActiveFingerprinting = useActiveFingerprinting;
+    }
+
+    public void setDebugLogActive(boolean shouldExtendedLog) {
+        this.debugLogActive = shouldExtendedLog;
+    }
+
+    public boolean isDebugLogActive() {
+        return this.debugLogActive;
     }
 
     public void setTrackAndroidAdvertisingIdentifier(boolean trackAaid)
@@ -45,7 +58,7 @@ public class MeasurementServiceConfiguration {
     public static MeasurementServiceConfiguration activeFingerprintConfig() {
         MeasurementServiceConfiguration activeconfig = new MeasurementServiceConfiguration();
         activeconfig.setUseActiveFingerprinting(true);
-        activeconfig.setDebugMode(true);
+        activeconfig.setDebugMode(false);
 
         return activeconfig;
     }

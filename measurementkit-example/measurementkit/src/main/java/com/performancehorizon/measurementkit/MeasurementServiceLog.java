@@ -8,7 +8,22 @@ import android.util.Log;
  */
 public class MeasurementServiceLog {
 
-    protected final static String TRACKING_LOG = "PHN_MT";
+    protected final static String TRACKING_LOG = "PHN_MMK";
+
+    //static controls extended logging.
+    protected static boolean debugModeActive = false;
+
+    protected static void setDebugModeActive(boolean isDebug)
+    {
+        debugModeActive = isDebug;
+    }
+
+    //V
+    public static void debug(String log) {
+        if (debugModeActive) {
+            Log.d(TRACKING_LOG, log);
+        }
+    }
 
     public static void d( String log) {
         Log.d(TRACKING_LOG, log);
