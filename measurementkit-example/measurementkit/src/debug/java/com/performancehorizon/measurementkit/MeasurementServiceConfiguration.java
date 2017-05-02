@@ -50,7 +50,7 @@ public class MeasurementServiceConfiguration {
     {
         MeasurementServiceConfiguration debugconfig = new MeasurementServiceConfiguration();
         debugconfig.setDebugMode(true);
-        debugconfig.setUseActiveFingerprinting(true);
+        debugconfig.setUseActiveFingerprinting(false);
 
         return debugconfig;
     }

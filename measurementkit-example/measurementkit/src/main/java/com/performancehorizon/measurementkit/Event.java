@@ -228,6 +228,14 @@ public class Event {
             return this;
         }
 
+        public Builder sale(Sale sale, String ofCurrency) {
+            this.sales = new ArrayList<>();
+            this.sales.add(sale);
+            this.salesCurrency = ofCurrency;
+
+            return this;
+        }
+
         public Builder voucher(String voucher) {
             this.voucher = voucher;
             return this;

@@ -1,7 +1,9 @@
 package com.performancehorizon.measurementkit;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
@@ -13,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
@@ -22,9 +25,12 @@ import java.util.HashMap;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.after;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -51,6 +57,7 @@ public class TestMeasurementService_Setup {
 
     //mocks for initialisation
     private Context context;
+    private Context applicationContext;
     private MeasurementService.MeasurementStorageFactory storageFactory;
     private MeasurementService.ReachabilityFactory reachabilityFactory;
     private MeasurementService.IntentProcessorFactory processorFactory;
@@ -143,6 +150,9 @@ public class TestMeasurementService_Setup {
         this.tracker = mock(ReferrerTracker.class);
         when(trackerFactory.getReferrerTracker()).thenReturn(this.tracker);
         when(tracker.getReferrer(any(Context.class))).thenReturn(null);
+
+        this.applicationContext = mock(Context.class);
+        when(context.getApplicationContext()).thenReturn(this.applicationContext);
     }
 
     @Test
@@ -165,7 +175,7 @@ public class TestMeasurementService_Setup {
         verify(registerQueue, times(0)).setQueueIsPaused(anyBoolean());
         verify(eventQueue, times(0)).setQueueIsPaused(anyBoolean());
 
-        verify(this.eventQueue).addEventRequest(argThat(new EventRequestNoTrackingID()));
+        verify(this.eventQueue, times(0)).addEventRequest(argThat(new EventRequestNoTrackingID()));
     }
 
     @Test
@@ -192,7 +202,7 @@ public class TestMeasurementService_Setup {
         reachabilitycallback.onNetworkActive();
 
         //should set the event queue to active, register queue to inactive
-        verify(registerQueue).setQueueIsPaused(true);
+        verify(registerQueue).setQueueIsPaused(false);
         verify(eventQueue).setQueueIsPaused(false);
     }
 
@@ -474,6 +484,89 @@ public class TestMeasurementService_Setup {
 
         verify(registerQueue, timeout(1000)).addRegisterRequest(registerRequest);
     }
+
+    @Test //NB - this tests the non-registration parts of initialise( with context, but no query)
+    public void testRepeatedInitialise()
+    {
+        Intent boringlink = new Intent(Intent.ACTION_MAIN);
+        when(storage.getCamRef()).thenReturn("camref");
+        when(storage.getReferrer()).thenReturn("referrer");
+
+        //setup for reachability.
+        when(context.getSystemService(Context.CONNECTIVITY_SERVICE)).thenReturn(mock(ConnectivityManager.class));
+        //storage should return active in this case.
+        when(storage.status()).thenReturn(MeasurementService.MeasurementServiceStatus.QUERYING);
+
+        service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
+
+        service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
+
+        service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
+
+        verify(applicationContext, times(1)).registerReceiver(Matchers.any(BroadcastReceiver.class), Matchers.any(IntentFilter.class));
+        verify(reachabilityFactory, times(1)).getReachability(any(ConnectivityManager.class), any(ReachabilityCallback.class));
+    }
+
+    @Test //NB - this tests the non-registration parts of initialise( with context, but no query)
+    public void testRepeatedRegisteredAreIgnored()
+    {
+        Intent boringlink = new Intent(Intent.ACTION_MAIN);
+        when(storage.getCamRef()).thenReturn("camref");
+        when(storage.getReferrer()).thenReturn("referrer");
+
+        //setup for reachability.
+        when(context.getSystemService(Context.CONNECTIVITY_SERVICE)).thenReturn(mock(ConnectivityManager.class));
+        //storage should return active in this case.
+        when(storage.status()).thenReturn(MeasurementService.MeasurementServiceStatus.QUERYING);
+
+        service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
+
+        service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
+
+        verify(applicationContext, times(1)).registerReceiver(Matchers.any(BroadcastReceiver.class), Matchers.any(IntentFilter.class));
+        verify(reachabilityFactory, times(1)).getReachability(any(ConnectivityManager.class), any(ReachabilityCallback.class));
+    }
+
+    @Test //NB - this tests the non-registration parts of initialise( with context, but no query)
+    public void testRepeatedRegistersNoResubmit() throws Exception
+    {
+        Intent boringlink = new Intent(Intent.ACTION_MAIN);
+        when(storage.getCamRef()).thenReturn("camref");
+        when(storage.getReferrer()).thenReturn("referrer");
+
+        //setup for reachability.
+        when(context.getSystemService(Context.CONNECTIVITY_SERVICE)).thenReturn(mock(ConnectivityManager.class));
+        //storage should return active in this case.
+        when(storage.status()).thenReturn(MeasurementService.MeasurementServiceStatus.QUERYING);
+
+        RegisterRequest request = new RegisterRequest(null);
+        request.setCampaignID("campaignID");
+        request.setAdvertiserID("advertiserID");
+        request.setReferrer("referrer");
+        request.setCamref("camref");
+
+        when(registerRequestFactory.getRegisterRequest(any(Context.class), anyBoolean())).thenReturn(request);
+        when(registerQueue.containsRequest(request)).thenReturn(true);
+
+        service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
+
+        service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
+
+        service.initialise(context, boringlink, ADVERTISERID, CAMPAIGNID,
+                storageFactory, reachabilityFactory, processorFactory, registerRequestFactory, trackerFactory);
+
+        // if we already have a matching request in the queue don't both to add a new one.
+        // and potentially double up on installs
+        verify(registerQueue, after(500).times(0)).addRegisterRequest(any(RegisterRequest.class));
+    }
+
 
     @Test //NB - this tests the non-registration parts of initialise( with context, but no query)
     public void testInitialiseSetupWithContextWithUniveralIntent()

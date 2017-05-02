@@ -19,6 +19,8 @@ public class ReferrerTracker extends BroadcastReceiver{
     protected static final String REFERER_KEY  = "phn_ref";
     protected static final String REFERER_PREFS = "phn_mmk_referrer";
 
+    protected static final String BROADCAST_ACTION = "com.performancehorizon.measurementkit.REFERRER_RECOVERED";
+
     public ReferrerTracker() {
         super();
     }
@@ -39,7 +41,10 @@ public class ReferrerTracker extends BroadcastReceiver{
 
                     if (querydecoder.hasParameter(REFERER_KEY)) {
                         MeasurementServiceLog.d("Referrer Tracker - recovered install referrer");
-                        context.getSharedPreferences(REFERER_PREFS, Context.MODE_PRIVATE).edit().putString(REFERER_KEY, querydecoder.getValue(REFERER_KEY)).apply();
+                        this.putReferrer(context, querydecoder.getValue(REFERER_KEY));
+
+                        // broadcast action for MeasurementService running in parallel
+                        context.sendBroadcast(new Intent(BROADCAST_ACTION));
                     }
                     else {
                         MeasurementServiceLog.d("Referrer Tracker - referrer missing PHN reference parameter");

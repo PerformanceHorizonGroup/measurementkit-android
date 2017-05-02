@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="200dp">
+
+    <ImageView
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/item_1"
+        android:id="@+id/item_image"
+        android:padding="5dp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:text="Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/item_title"
+                android:layout_weight="0.125"
+                android:padding="15dp"
+                android:textAppearance="@android:style/TextAppearance.Material.Large" />
+
+            <TextView
+                android:text="Subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/item_subtitle"
+                android:layout_weight="1"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="35dp">
+
+            <android.support.design.widget.FloatingActionButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            app:fabSize="mini"
+            app:srcCompat="@android:drawable/ic_menu_add"
+            android:id="@+id/item_add_button"
+            app:elevation="9dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+                android:layout_margin="5dp" />
+
+            <android.support.design.widget.FloatingActionButton
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                app:fabSize="mini"
+                app:srcCompat="@android:drawable/star_big_off"
+                android:id="@+id/floatingActionButton"
+                app:elevation="9dp"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_margin="5dp" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</LinearLayout>

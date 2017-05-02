@@ -186,7 +186,7 @@ public class MeasurementServiceStorage {
             return MeasurementServiceStatus.ACTIVE;
         }
         else {
-            return MeasurementServiceStatus.QUERYING;
+            return MeasurementServiceStatus.AWAITING_INITIALISE;
         }
     }
 

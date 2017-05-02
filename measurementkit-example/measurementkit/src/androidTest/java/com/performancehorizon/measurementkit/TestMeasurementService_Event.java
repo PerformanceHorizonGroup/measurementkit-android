@@ -84,8 +84,7 @@ public class TestMeasurementService_Event {
 
         verify(registerQueue, times(0)).setQueueIsPaused(anyBoolean());
         verify(eventQueue, times(0)).setQueueIsPaused(anyBoolean());
-
-        verify(this.eventQueue).addEventRequest(argThat(new EventRequestNoTrackingID()));
+        verify(this.eventQueue, times(0)).addEventRequest(argThat(new EventRequestNoTrackingID()));
     }
 
     @Test
@@ -163,12 +162,13 @@ public class TestMeasurementService_Event {
         service.trackEvent(event);
 
         verify(eventQueue).setQueueIsPaused(true);
-        verify(registerQueue).setQueueIsPaused(true);
+        verify(registerQueue).setQueueIsPaused(false);
     }
 
 
     @Test
-    public void testQueuesRestartOnEventWhenActive() {
+    public void testQueuesRestartOnEventWhenActive()
+    {
         Event event = mock(Event.class);
 
         service.putStatus(MeasurementService.MeasurementServiceStatus.ACTIVE);
@@ -177,7 +177,7 @@ public class TestMeasurementService_Event {
         service.trackEvent(event);
 
         verify(eventQueue).setQueueIsPaused(false);
-        verify(registerQueue).setQueueIsPaused(true);
+        verify(registerQueue).setQueueIsPaused(false);
     }
 
     @Test
@@ -191,7 +191,7 @@ public class TestMeasurementService_Event {
         service.trackEvent(event);
 
         verify(eventQueue).setQueueIsPaused(true);
-        verify(registerQueue).setQueueIsPaused(true);
+        verify(registerQueue).setQueueIsPaused(false);
     }
 
     @Test
@@ -221,7 +221,7 @@ public class TestMeasurementService_Event {
         service.trackEvent(event);
 
         verify(eventQueue).setQueueIsPaused(true);
-        verify(registerQueue).setQueueIsPaused(true);
+        verify(registerQueue).setQueueIsPaused(false);
     }
 
     private class EventRequestNoTrackingID extends ArgumentMatcher<EventRequest>{

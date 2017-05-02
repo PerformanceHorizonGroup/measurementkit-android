@@ -25,6 +25,7 @@ public class MeasurementServiceLog {
         }
     }
 
+
     public static void d( String log) {
         Log.d(TRACKING_LOG, log);
     }

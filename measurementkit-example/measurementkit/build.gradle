@@ -30,7 +30,7 @@ ext {
     siteUrl = 'https://github.com/PerformanceHorizonGroup/measurementkit-android'
     gitUrl = 'https://github.com/PerformanceHorizonGroup/measurementkit-android.git'
 
-    libraryVersion = '0.3.10'
+    libraryVersion = '0.3.11'
 
     developerId = 'owainbrown'
     developerName = 'Owain Brown'
@@ -44,6 +44,8 @@ ext {
 //android build options
 android {
 
+    publishNonDefault true
+
     lintOptions {
         warning 'InvalidPackage'
     }
@@ -55,13 +57,13 @@ android {
         minSdkVersion 14
         targetSdkVersion 25
         versionCode 7
-        versionName '0.3.10'
+        versionName '0.3.11'
         //versionNameSuffix '-alpha'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         debug {
-            testCoverageEnabled = true
+            //testCoverageEnabled = true
         }
         release {
             minifyEnabled false
@@ -80,7 +82,7 @@ android {
 }
 
 dependencies {
-    compile 'com.squareup.okhttp3:okhttp:3.5.0'
+    compile 'com.squareup.okhttp3:okhttp:3.6.0'
     compile 'com.parse.bolts:bolts-tasks:1.4.0'
 
     testCompile 'junit:junit:4.12'

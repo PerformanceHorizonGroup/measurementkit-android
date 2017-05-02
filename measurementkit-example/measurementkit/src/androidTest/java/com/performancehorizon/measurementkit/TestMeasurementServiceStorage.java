@@ -245,13 +245,13 @@ public class TestMeasurementServiceStorage {
     }
 
     @Test
-    public void testStatusQueryingAsDefault()
+    public void testStatusAwaitingInitAsDefault()
     {
         MeasurementServiceStorage storage = new MeasurementServiceStorage(mockContext);
 
         storage.putHalted(false);
 
-        Assert.assertEquals(storage.status(), MeasurementService.MeasurementServiceStatus.QUERYING);
+        Assert.assertEquals(storage.status(), MeasurementService.MeasurementServiceStatus.AWAITING_INITIALISE);
     }
 
 }
