@@ -29,7 +29,7 @@ public class MeasurementServiceConfiguration {
     }
 
     private void setUseActiveFingerprinting(boolean useActiveFingerprinting) {
-        this.useActiveFingerprinting = useActiveFingerprinting;b
+        this.useActiveFingerprinting = useActiveFingerprinting;
     }
 
 
