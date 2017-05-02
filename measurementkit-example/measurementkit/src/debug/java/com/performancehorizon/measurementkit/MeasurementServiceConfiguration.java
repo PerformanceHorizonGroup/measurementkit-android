@@ -10,7 +10,8 @@ public class MeasurementServiceConfiguration {
     private boolean debugLogActive = false;
 
     public String toString() {
-        return "Configuration:  [ debug urls %b, track AAID %b, \n active fingerprinting %b, Debug log active %b ]";
+        return String.format("Configuration:  [ debug urls %b, track AAID %b, \n active fingerprinting %b, Debug log active %b ]",
+                this.debugLogActive, this.trackAndroidAdvertisingIdentifier, this.useActiveFingerprinting, this.debugLogActive);
     }
 
     protected boolean useActiveFingerprinting() {

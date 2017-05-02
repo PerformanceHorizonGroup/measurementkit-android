@@ -225,7 +225,7 @@ public class TestMeasurementService_Setup {
         verify(context, times(0)).getSystemService(Context.CONNECTIVITY_SERVICE);
 
         //service
-        verify(storage).status();
+        verify(storage, times(2)).status();
 
         Assert.assertNull(service.getDeepLinkIntent());
         Assert.assertEquals(service.getStatus(), MeasurementService.MeasurementServiceStatus.QUERYING);
