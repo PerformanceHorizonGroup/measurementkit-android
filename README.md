@@ -42,7 +42,7 @@ To your app module, add the following.
 	    *
 	    * All other dependencies....
 	    */
-	    compile 'com.performancehorizon.android:measurementkit:0.3.9'
+	    compile 'com.performancehorizon.android:measurementkit:0.4.1'
 	}
 
 #### Proguard
@@ -124,3 +124,13 @@ In order to be opened via the appropriate intent, a app would commonly register 
 #### Advertising Identifier
 
  The advertising identifier from google play services is captured if that library is available on the device.  It is used for attribution in some scenarios.
+ 
+ #### Debug Logging
+
+Measurement Kit has a configuration option for extended debug logging that can be helpful in diagnosing integration issues. To enable, use the setDebugLogActive method on MeasurementServiceConfiguration.
+
+        MeasurementServiceConfiguration configuration = new MeasurementServiceConfiguration();
+        //enable debug logging.
+	configuration.setDebugLogActive(true);
+	
+        MeasurementService.sharedInstance(configuration).initialise(this, this.getIntent(), "1100l12", "1011l48");
