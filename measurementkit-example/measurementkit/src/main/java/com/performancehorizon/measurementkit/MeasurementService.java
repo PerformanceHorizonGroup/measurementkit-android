@@ -25,6 +25,8 @@ import okhttp3.OkHttpClient;
  */
 public class MeasurementService implements TrackingRequestQueueDelegate, RegisterRequestQueueDelegate {
 
+    private static final String MEASUREMENTSERVICEVERSION = "0.4.2";
+
     protected static class ReferrerTrackerFactory {
         public ReferrerTracker getReferrerTracker() {
             return new ReferrerTracker();
@@ -241,7 +243,9 @@ public class MeasurementService implements TrackingRequestQueueDelegate, Registe
 
         this.status = MeasurementServiceStatus.AWAITING_INITIALISE;
 
-        MeasurementServiceLog.debug(String.format("Measurement Service initialised with the following config: %s", config.toString()));
+        MeasurementServiceLog.debug(String.format("Measurement Service instance, version %s created with the following config: %s",
+                MEASUREMENTSERVICEVERSION,
+                config.toString()));
     }
 
 
