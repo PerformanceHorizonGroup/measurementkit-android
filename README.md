@@ -50,9 +50,7 @@ If you use proguard to shrink release builds, you will need to add the following
 	-dontwarn okhttp3.**
 	-dontwarn okio.*
 
-### Implementing - Advertiser
-
-#### Initialisation
+### Initialisation
 Import `com.performancehorizon.measurementkit.*` into your main Activity and initialise.
 
 	import com.performancehorizon.measurementkit.MeasurementService;
@@ -87,11 +85,11 @@ If the referrer field is already in use in the links provided to publishers, ple
 If you're already using a referrer tracker from another library (Google Analytics, for example), then you can use a composite referrer.  Google Analytics provides an example as a custom referrer tracker:
 https://developers.google.com/analytics/solutions/testing-play-campaigns
 
-#### Tracking Events
+### Tracking Events
 
 Within the Performance Horizon Enterprise web-interface, conversions represent an affiliate-led sale.  In MMK, we use a conversion to represent an in-app event.  Events can be used to record in-app purchase, or commissionable user actions.  An example would be an affiliate-led user registration, or crediting an account with funds.  Install conversions are automatically generated where an affiliate link leads to an app install.
 
-##### Event
+#### Event
 The most basic form of event has no value associated with it. (Perhaps an in-app action on which you're not looking to reward affiliates.)
 
 The category parameter is used to set the product conversions.
@@ -99,7 +97,7 @@ The category parameter is used to set the product conversions.
     Event event = new Event("registration-initiated");
     MeasurementService.sharedInstance().trackEvent(event);
 
-##### Sale
+#### Sale
 If an event has a value you'd like to track, sales can be associated with an event as follows.
 
 The currency parameter is a ISO 4217 currency code. (eg, USD, GBP)
