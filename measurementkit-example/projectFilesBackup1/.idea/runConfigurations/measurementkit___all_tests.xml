@@ -1,7 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="measurementkit - all tests" type="CompoundRunConfigurationType" factoryName="Compound Run Configuration">
-    <toRun type="AndroidTestRunConfigurationType" name="measurementkit - instrumentation tests" />
-    <toRun type="JUnit" name="measurementkit - unit tests" />
-    <method />
-  </configuration>
-</component>
