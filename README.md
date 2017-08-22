@@ -40,7 +40,7 @@ To your app module, add the following.
 	    *
 	    * All other dependencies....
 	    */
-	    compile 'com.performancehorizon.android:measurementkit:0.3.9'
+	    compile 'com.performancehorizon.android:measurementkit:0.4.1'
 	}
 
 #### Proguard
@@ -96,8 +96,8 @@ The most basic form of event has no value associated with it. (Perhaps an in-app
 
 The category parameter is used to set the product conversions.
 
-    MobileTrackingEvent event = new MobileTrackingEvent("registration-initiated");
-    MobileTrackingService.trackingInstance().trackEvent(event);
+    Event event = new Event("registration-initiated");
+    MeasurementService.sharedInstance().trackEvent(event);
 
 ##### Sale
 If an event has a value you'd like to track, sales can be associated with an event as follows.
@@ -105,8 +105,7 @@ If an event has a value you'd like to track, sales can be associated with an eve
 The currency parameter is a ISO 4217 currency code. (eg, USD, GBP)
 
 	Event event = new Event(new Sale("premium upgrade", new BigDecimal(34.5)), "GBP");
-
-	MeasurementService.trackingInstance().trackEvent(event);
+	MeasurementService.sharedInstance().trackEvent(event);
 
 ##### Testing
 
@@ -129,3 +128,13 @@ In order to be opened via the appropriate intent, a app woulrd commonly register
 #### Advertising Identifier
 
  The advertising identifier from google play services is captured if that library is available on the device.  It is used for attribution in some scenarios.
+ 
+ #### Debug Logging
+
+Measurement Kit has a configuration option for extended debug logging that can be helpful in diagnosing integration issues. To enable, use the setDebugLogActive method on MeasurementServiceConfiguration.
+
+        MeasurementServiceConfiguration configuration = new MeasurementServiceConfiguration();
+        //enable debug logging.
+	configuration.setDebugLogActive(true);
+	
+        MeasurementService.sharedInstance(configuration).initialise(this, this.getIntent(), "1100l12", "1011l48");
