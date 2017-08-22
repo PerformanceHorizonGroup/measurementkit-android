@@ -1,5 +1,3 @@
-![PHG Icon](http://performancehorizon.com/img/logo-on-white.svg)
-
 # Measurement Kit Android SDK (BETA)
 ## Overview
 
@@ -110,9 +108,16 @@ The currency parameter is a ISO 4217 currency code. (eg, USD, GBP)
 
 	MeasurementService.trackingInstance().trackEvent(event);
 
+##### Testing
+
+MeasurementKit checks for affiliate activity on first launch.  If there's no prior activity, it will be disabled for future launches.  If you're testing an integration, you may wish to reset it so that it will check for affiliate activity on each launch.  You can do this with the clearTracking method on MeasurementService.
+
+	MeasurementService.sharedInstance().clearTracking(this);
+    MeasurementService.sharedInstance().initialise(this.getApplicationContext(), this.getIntent(), "phg_advertiser_id", "phg_campaign_id")
+
 #### URL Scheme configuration
 
-In order to be opened via the appropriate intent, a app would commonly register a splash activity with an Intent filter as follows.  (This example uses a custom scheme)
+In order to be opened via the appropriate intent, a app woulrd commonly register a splash activity with an Intent filter as follows.  (This example uses a custom scheme)
 
     <intent-filter>
        <data android:scheme="exactview" android:host="open" />
