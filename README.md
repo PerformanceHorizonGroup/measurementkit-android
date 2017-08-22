@@ -107,14 +107,16 @@ The currency parameter is a ISO 4217 currency code. (eg, USD, GBP)
 	Event event = new Event(new Sale("premium upgrade", new BigDecimal(34.5)), "GBP");
 	MeasurementService.sharedInstance().trackEvent(event);
 
-##### Testing
+##FAQs
+
+#### Testing
 
 MeasurementKit checks for affiliate activity on first launch.  If there's no prior activity, it will be disabled for future launches.  If you're testing an integration, you may wish to reset it so that it will check for affiliate activity on each launch.  You can do this with the clearTracking method on MeasurementService.
 
 	MeasurementService.sharedInstance().clearTracking(this);
     MeasurementService.sharedInstance().initialise(this.getApplicationContext(), this.getIntent(), "phg_advertiser_id", "phg_campaign_id")
 
-#### URL Scheme configuration
+### URL Scheme configuration
 
 In order to be opened via the appropriate intent, a app woulrd commonly register a splash activity with an Intent filter as follows.  (This example uses a custom scheme)
 
@@ -125,11 +127,11 @@ In order to be opened via the appropriate intent, a app woulrd commonly register
        <category android:name="android.intent.category.BROWSABLE" />
     </intent-filter>
 
-#### Advertising Identifier
+### Advertising Identifier
 
  The advertising identifier from google play services is captured if that library is available on the device.  It is used for attribution in some scenarios.
- 
- #### Debug Logging
+
+### Debug Logging
 
 Measurement Kit has a configuration option for extended debug logging that can be helpful in diagnosing integration issues. To enable, use the setDebugLogActive method on MeasurementServiceConfiguration.
 
