@@ -6,14 +6,13 @@ buildscript {
 
     dependencies {
         classpath 'com.android.tools.build:gradle:2.3.3'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
     }
 }
 
 //builds dependency reports
 apply plugin: 'project-report'
-
 apply plugin: 'com.android.library'
 
 //info used in preparing a maven pomfile.
@@ -99,6 +98,7 @@ dependencies {
     androidTestAaidCompile 'com.google.android.gms:play-services-ads:10.0.1'
 }
 
+
 //prepare artifact description for maven for the measurementkit library, and upload to jcenter bintray.
 apply plugin: 'com.github.dcendents.android-maven'
 
@@ -113,6 +113,7 @@ install {
                 packaging 'aar'
                 groupId publishedGroupId
                 artifactId artifact
+
 
                 // Add your description here
                 name libraryName
@@ -179,6 +180,7 @@ install {
         pkg {
             repo = bintrayRepo
             name = bintrayName
+            userOrg = 'performancehorizon'
             desc = libraryDescription
             websiteUrl = siteUrl
             vcsUrl = gitUrl
@@ -188,8 +190,8 @@ install {
             version {
                 desc = libraryDescription
                 gpg {
-                    sign = true //Determines whether to GPG sign the files. The default is false
-                    passphrase = properties.getProperty("bintray.gpg.password")
+                    sign = false //Determines whether to GPG sign the files. The default is false
+                    //passphrase = properties.getProperty("bintray.gpg.password")
                     //Optional. The passphrase for GPG signing'
                 }
             }
